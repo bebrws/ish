@@ -194,11 +194,13 @@ NSDictionary<NSString *, Theme *> *presetThemes;
                      @"Solarized Light": [self _themeWithForegroundColor:[UIColor colorWithRed:88.0/255.0 green:110.0/255.0 blue:117.0/255.0 alpha: 1.0]
                                                          backgroundColor:[UIColor colorWithRed:253.0/255.0 green:246.0/255.0 blue:227.0/255.0 alpha: 1.0]],
                      @"Solarized Dark":  [self _themeWithForegroundColor:[UIColor colorWithRed:131.0/255.0 green:148.0/255.0 blue:150.0/255.0 alpha: 1.0]
-                                                         backgroundColor:[UIColor colorWithRed:0.0 green:43.0/255.0 blue:54.0/255.0 alpha: 1.0]]};
+                                                         backgroundColor:[UIColor colorWithRed:0.0 green:43.0/255.0 blue:54.0/255.0 alpha: 1.0]],
+                    @"Solarized Dark Grey":  [self _themeWithForegroundColor:[UIColor colorWithRed:131.0/255.0 green:148.0/255.0 blue:150.0/255.0 alpha: 1.0]
+                                        backgroundColor:[UIColor colorWithRed:30.0 green:30.0/255.0 blue:30.0/255.0 alpha: 1.0]]};
 }
 
 + (NSArray<NSString *> *)presetNames {
-    return @[@"Light", @"Dark", @"1337", @"Solarized Light", @"Solarized Dark"];
+    return @[@"Light", @"Dark", @"1337", @"Solarized Light", @"Solarized Dark", @"Solarized Dark Grey"];
 }
 + (instancetype)presetThemeNamed:(NSString *)name {
     return presetThemes[name];

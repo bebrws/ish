@@ -170,7 +170,7 @@
 		BB6DB260216435330047A611 /* libiconv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libiconv.tbd; path = usr/lib/libiconv.tbd; sourceTree = SDKROOT; };
 		BB78AB291FAD22440013E782 /* TerminalView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TerminalView.h; sourceTree = "<group>"; };
 		BB78AB2A1FAD22440013E782 /* TerminalView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TerminalView.m; sourceTree = "<group>"; };
-		BB792B501F96D90D00FFB7A4 /* iSH.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iSH.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		BB792B501F96D90D00FFB7A4 /* iSHBB.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iSHBB.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		BB792B531F96D90D00FFB7A4 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		BB792B541F96D90D00FFB7A4 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		BB792B561F96D90D00FFB7A4 /* TerminalViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TerminalViewController.h; sourceTree = "<group>"; };
@@ -419,7 +419,7 @@
 		BB792B511F96D90D00FFB7A4 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				BB792B501F96D90D00FFB7A4 /* iSH.app */,
+				BB792B501F96D90D00FFB7A4 /* iSHBB.app */,
 				BBF124901FA7C3100088FB50 /* alpine */,
 				BB13F7DC200AD81D003D1C4D /* libish.a */,
 				BB88F4902154760800A341FD /* iSHFileProvider.appex */,
@@ -776,9 +776,9 @@
 			productReference = BB13F7DC200AD81D003D1C4D /* libish.a */;
 			productType = "com.apple.product-type.library.static";
 		};
-		BB792B4F1F96D90D00FFB7A4 /* iSH */ = {
+		BB792B4F1F96D90D00FFB7A4 /* iSHBB */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = BB792B661F96D90D00FFB7A4 /* Build configuration list for PBXNativeTarget "iSH" */;
+			buildConfigurationList = BB792B661F96D90D00FFB7A4 /* Build configuration list for PBXNativeTarget "iSHBB" */;
 			buildPhases = (
 				BB792B4C1F96D90D00FFB7A4 /* Sources */,
 				BB792B4D1F96D90D00FFB7A4 /* Frameworks */,
@@ -794,9 +794,9 @@
 				BB13F7E7200AD874003D1C4D /* PBXTargetDependency */,
 				BB88F49E2154760800A341FD /* PBXTargetDependency */,
 			);
-			name = iSH;
+			name = iSHBB;
 			productName = iSH;
-			productReference = BB792B501F96D90D00FFB7A4 /* iSH.app */;
+			productReference = BB792B501F96D90D00FFB7A4 /* iSHBB.app */;
 			productType = "com.apple.product-type.application";
 		};
 		BB88F48F2154760800A341FD /* iSHFileProvider */ = {
@@ -875,7 +875,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				BB792B4F1F96D90D00FFB7A4 /* iSH */,
+				BB792B4F1F96D90D00FFB7A4 /* iSHBB */,
 				BB88F48F2154760800A341FD /* iSHFileProvider */,
 				BB13F7CA200ACC31003D1C4D /* Meson */,
 				BB13F7D0200ACCA2003D1C4D /* Ninja */,
@@ -1609,7 +1609,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		BB792B661F96D90D00FFB7A4 /* Build configuration list for PBXNativeTarget "iSH" */ = {
+		BB792B661F96D90D00FFB7A4 /* Build configuration list for PBXNativeTarget "iSHBB" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				BB792B641F96D90D00FFB7A4 /* Debug */,
