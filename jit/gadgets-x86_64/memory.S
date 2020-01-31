@@ -1,6 +1,8 @@
 #include "gadgets.h"
 #include "emu/interrupt.h"
 
+# https://wiki.mamedev.org/index.php/Virtual_TLB
+
 .gadget push
     sub $4, %_esp
     movl %_esp, %_addr

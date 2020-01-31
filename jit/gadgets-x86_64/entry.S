@@ -13,10 +13,10 @@ NAME(jit_enter):
     # make stack 16 byte aligned
     # this is preserved elsewhere by only doing even numbers of pushes
     sub $0x8, %rsp
-    leaq JIT_BLOCK_code(%rdi), %_ip
+    leaq JIT_BLOCK_code(%rdi), %_ip     // load the code offset of the first param, &frame, into ip
     movq %rsi, %_cpu
     movq %rsp, LOCAL_bp(%_cpu)
-    leaq TLB_entries(%rdx), %_tlb
+    leaq TLB_entries(%rdx), %_tlb       // load the entries offset of the 2nd param &tlb, into _tbl
     load_regs
     gret
 

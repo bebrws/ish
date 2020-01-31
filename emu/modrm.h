@@ -31,7 +31,7 @@ struct modrm {
 };
 
 enum {
-    rm_sib = reg_esp,
+    rm_sib = reg_esp, // rm_sid == 4
     rm_none = reg_esp,
     rm_disp32 = reg_ebp,
 };
@@ -40,6 +40,8 @@ enum {
 #define RM(byte)  ((byte & 0b00000111) >> 0)
 
 // read modrm and maybe sib, output information into *modrm, return false for segfault
+// https://software.intel.com/sites/default/files/managed/39/c5/325462-sdm-vol-1-2abcd-3abcd.pdf
+// Page 2 - 6
 static inline bool modrm_decode32(addr_t *ip, struct tlb *tlb, struct modrm *modrm) {
 #define READ(thing) \
     if (!tlb_read(tlb, *ip, &(thing), sizeof(thing))) \

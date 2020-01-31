@@ -17,8 +17,16 @@ extern int current_pid(void);
 #define TRACEIP() TRACE("%d %08x\t", current_pid(), state->ip)
 
 // this will be the next PyEval_EvalFrameEx
+// int genstep_32(struct gen_state *state, struct tlb *tlb) {
 __no_instrument DECODER_RET glue(DECODER_NAME, OP_SIZE)(DECODER_ARGS) {
     DECLARE_LOCALS;
+    // This declares
+    /*
+     dword_t saved_ip = state->ip; \
+     dword_t addr_offset = 0; \
+     bool end_block = false; \
+     bool seg_gs = false
+    */
 
     byte_t insn;
     uint64_t imm = 0;
@@ -33,20 +41,31 @@ __no_instrument DECODER_RET glue(DECODER_NAME, OP_SIZE)(DECODER_ARGS) {
 
 restart:
     TRACEIP();
+    
+    // READINSN Loads the next instruction from
+    // tlb_read(tlb, state->ip, &name, size/8)
+    //    which is really  just looking up the instruction
+    // at ip
     READINSN;
+    //NSLog(@"instruction in hex: %@", insn);
+    
+//    fprintf(stderr, "Hex code for instruction: %X\n", insn);
     switch (insn) {
-#define MAKE_OP(x, OP, op) \
-        case x+0x0: TRACEI(op " reg8, modrm8"); \
+            
+    // READMODRM is calling
+    // modrm_decode32(&state->ip, tlb, &modrm)
+#define MAKE_OP(x, OP, opcodeAsString) \
+        case x+0x0: TRACEI(opcodeAsString " reg8, modrm8"); \
                    READMODRM; OP(modrm_reg, modrm_val,8); break; \
-        case x+0x1: TRACEI(op " reg, modrm"); \
+        case x+0x1: TRACEI(opcodeAsString " reg, modrm"); \
                    READMODRM; OP(modrm_reg, modrm_val,oz); break; \
-        case x+0x2: TRACEI(op " modrm8, reg8"); \
+        case x+0x2: TRACEI(opcodeAsString " modrm8, reg8"); \
                    READMODRM; OP(modrm_val, modrm_reg,8); break; \
-        case x+0x3: TRACEI(op " modrm, reg"); \
+        case x+0x3: TRACEI(opcodeAsString " modrm, reg"); \
                    READMODRM; OP(modrm_val, modrm_reg,oz); break; \
-        case x+0x4: TRACEI(op " imm8, al\t"); \
+        case x+0x4: TRACEI(opcodeAsString " imm8, al\t"); \
                    READIMM8; OP(imm, reg_a,8); break; \
-        case x+0x5: TRACEI(op " imm, oax\t"); \
+        case x+0x5: TRACEI(opcodeAsString " imm, oax\t"); \
                    READIMM; OP(imm, reg_a,oz); break
 
         MAKE_OP(0x00, ADD, "add");
@@ -67,7 +86,9 @@ restart:
                            READMODRM; VCOMPARE(xmm_modrm_val, xmm_modrm_reg,32);
                            break;
 
-                case 0x31: TRACEI("rdtsc");
+                case 0x31:
+                         
+                           TRACEI("rdtsc");
                            RDTSC; break;
 
                 case 0x40: TRACEI("cmovo modrm, reg");
@@ -460,7 +481,9 @@ restart:
         case 0x88: TRACEI("mov reg8, modrm8");
                    READMODRM; MOV(modrm_reg, modrm_val,8); break;
         case 0x89: TRACEI("mov reg, modrm");
-                   READMODRM; MOV(modrm_reg, modrm_val,oz); break;
+                   READMODRM;
+            MOV(modrm_reg, modrm_val,oz);
+            break;
         case 0x8a: TRACEI("mov modrm8, reg8");
                    READMODRM; MOV(modrm_val, modrm_reg,8); break;
         case 0x8b: TRACEI("mov modrm, reg");

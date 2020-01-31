@@ -80,6 +80,7 @@ static void ios_handle_die(const char *msg) {
             exit(1);
         }
     }
+    
     alpineRoot = [alpineRoot URLByAppendingPathComponent:@"data"];
     int err = mount_root(&fakefs, alpineRoot.fileSystemRepresentation);
     if (err < 0)

@@ -3,7 +3,7 @@
     .ifb \s
         # for 32-bit operands, we can just do the operation and the chip
         # will set v and c right, which we copy
-        \op\()s \dst, \dst, \src
+        \op\()s \dst, \dst, \src	
         cset w10, vs
         strb w10, [_cpu, CPU_of]
         .ifin(\op, add,adc)

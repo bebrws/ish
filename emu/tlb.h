@@ -35,7 +35,9 @@ forceinline __no_instrument void *__tlb_read_ptr(struct tlb *tlb, addr_t addr) {
     }
     return tlb_handle_miss(tlb, addr, MEM_READ);
 }
+
 bool __tlb_read_cross_page(struct tlb *tlb, addr_t addr, char *out, unsigned size);
+
 forceinline __no_instrument bool tlb_read(struct tlb *tlb, addr_t addr, void *out, unsigned size) {
     if (PGOFFSET(addr) > PAGE_SIZE - size)
         return __tlb_read_cross_page(tlb, addr, out, size);
