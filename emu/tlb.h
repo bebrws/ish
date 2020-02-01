@@ -17,8 +17,11 @@ struct tlb {
     page_t dirty_page;
     struct tlb_entry entries[TLB_SIZE];
 };
-
+//                          Page Table Index   ^      Page Directory Index
+//                         (addr >>   12) & 0xFFC (10 bits)    ^  (addr >>  22)
+//                             bits 13 -> 22                   ^   bits 23 -> 32
 #define TLB_INDEX(addr) (((addr >> PAGE_BITS) & (TLB_SIZE - 1)) ^ (addr >> (PAGE_BITS + TLB_BITS)))
+// 0xfffff000 is all but first 12 bits
 #define TLB_PAGE(addr) (addr & 0xfffff000)
 #define TLB_PAGE_EMPTY 1
 void tlb_init(struct tlb *tlb, struct mem *mem);
