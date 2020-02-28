@@ -2,6 +2,6 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "self:ish.xcodeproj">
+      location = "self:/Users/bbarrows/repos/ish2/iSHWithChanges.xcodeproj">
    </FileRef>
 </Workspace>
