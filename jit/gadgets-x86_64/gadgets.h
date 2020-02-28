@@ -28,34 +28,28 @@
 # memory reading and writing
 .irp type, read,write
 
-
-# https://stackoverflow.com/questions/29945171/difference-between-page-table-and-page-directory
-# https://www.intel.com/content/www/us/en/architecture-and-technology/64-ia-32-architectures-software-developer-vol-3a-part-1-manual.html 
-# 4 - 9
-# 
 .macro \type\()_prep size, id
     movl %_addr, %r14d
-    # 12 bits gives 4096 size page 
     shrl $12, %r14d
-    # in binary 0x3ff is 0b1111111111 that is a mask of first 10 bits
+    # 0x3ff is 0b1111111111 so its the first 10 bits
     andl $0x3ff, %r14d
-    # r14d now contains 10 bits offset by 12 which is the page table
+    # r14d now contains the bottom page directory bits
     movl %_addr, %r15d
-
-    # When the CPU is asked to access a virtual address, 
-    # it uses the 10 highest order bits (31:22) to index 
-    # into the page directory table
     shrl $22, %r15d
-    # r15 is now the page directory
-    
+    # r15d contains the top page directory bits
     xor %r15d, %r14d
     shll $4, %r14d
+    # r14d is the top XOR bottom page directory bits shifted left 4 bits
     movl %_addr, %r15d
     andl $0xfff, %r15d
+    # r15d now has the address offset
     cmpl $(0x1000-(\size/8)), %r15d
+    # If the address is one read size before the page boundry 0x1000 then do a crosspage load
     ja crosspage_load_\id
     movl %_addr, %r15d
     andl $0xfffff000, %r15d
+    # r15d now contains the top and bottom page directory bits
+    # Check if there is a tlb entry for this page
     .ifc \type,read
         cmpl TLB_ENTRY_page(%_tlb,%r14), %r15d
     .else
