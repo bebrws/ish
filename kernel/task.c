@@ -46,6 +46,7 @@ struct task *task_create_(struct task *parent) {
         if (cur_pid > MAX_PID) cur_pid = 1;
     } while (!pid_empty(&pids[cur_pid]));
     struct pid *pid = &pids[cur_pid];
+    
     pid->id = cur_pid;
     list_init(&pid->session);
     list_init(&pid->pgroup);

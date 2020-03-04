@@ -31,6 +31,14 @@ __no_instrument DECODER_RET glue(DECODER_NAME, OP_SIZE)(DECODER_ARGS) {
     byte_t insn;
     uint64_t imm = 0;
     struct modrm modrm;
+    
+#define READMODRM \
+    if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base)) { \
+        cpu->segfault_addr = cpu->eip; \
+        cpu->eip = saved_ip; \
+        return INT_GPF; \
+    }
+    
 #define READIMM_(name, size) _READIMM(name, size); TRACE("imm %llx ", (long long) name)
 #define READINSN _READIMM(insn, 8); TRACE("%02x ", insn)
 #define READIMM READIMM_(imm, OP_SIZE)
@@ -41,33 +49,33 @@ __no_instrument DECODER_RET glue(DECODER_NAME, OP_SIZE)(DECODER_ARGS) {
 
     
     
-//#define MAKE_OP(x, OP, opcodeAsString) \
-//        case x+0x0: TRACEI(opcodeAsString " reg8, modrm8"); \
-//                   READMODRM; OP(modrm_reg, modrm_val,8); break; \
-//        case x+0x1: TRACEI(opcodeAsString " reg, modrm"); \
-//                   READMODRM; OP(modrm_reg, modrm_val,oz); break; \
-//        case x+0x2: TRACEI(opcodeAsString " modrm8, reg8"); \
-//                   READMODRM; OP(modrm_val, modrm_reg,8); break; \
-//        case x+0x3: TRACEI(opcodeAsString " modrm, reg"); \
-//                   READMODRM; OP(modrm_val, modrm_reg,oz); break; \
-//        case x+0x4: TRACEI(opcodeAsString " imm8, al\t"); \
-//                   READIMM8; OP(imm, reg_a,8); break; \
-//        case x+0x5: TRACEI(opcodeAsString " imm, oax\t"); \
-//                   READIMM; OP(imm, reg_a,oz); break
-            
 #define MAKE_OP(x, OP, opcodeAsString) \
-            case x+0x0: \
-                break; \
-            case x+0x1: \
-                break; \
-            case x+0x2: \
-                break; \
-            case x+0x3: \
-                break; \
-            case x+0x4: \
-                break; \
-            case x+0x5: \
-                break
+        case x+0x0: TRACEI(opcodeAsString " reg8, modrm8"); \
+                   READMODRM; OP(modrm_reg, modrm_val,8); break; \
+        case x+0x1: TRACEI(opcodeAsString " reg, modrm"); \
+                   READMODRM; OP(modrm_reg, modrm_val,oz); break; \
+        case x+0x2: TRACEI(opcodeAsString " modrm8, reg8"); \
+                   READMODRM; OP(modrm_val, modrm_reg,8); break; \
+        case x+0x3: TRACEI(opcodeAsString " modrm, reg"); \
+                   READMODRM; OP(modrm_val, modrm_reg,oz); break; \
+        case x+0x4: TRACEI(opcodeAsString " imm8, al\t"); \
+                   READIMM8; OP(imm, reg_a,8); break; \
+        case x+0x5: TRACEI(opcodeAsString " imm, oax\t"); \
+                   READIMM; OP(imm, reg_a,oz); break
+            
+//#define MAKE_OP(x, OP, opcodeAsString) \
+//            case x+0x0: \
+//                break; \
+//            case x+0x1: \
+//                break; \
+//            case x+0x2: \
+//                break; \
+//            case x+0x3: \
+//                break; \
+//            case x+0x4: \
+//                break; \
+//            case x+0x5: \
+//                break
     
 restart:
     TRACEIP();
@@ -86,8 +94,8 @@ restart:
     // modrm_decode32(&state->ip, tlb, &modrm)
 
 
-//        MAKE_OP(0x00, ADD, "add");
-//        MAKE_OP(0x08, OR, "or");
+        MAKE_OP(0x00, ADD, "add");
+        MAKE_OP(0x08, OR, "or");
 
         case 0x0f:
             // 2-byte opcode prefix
