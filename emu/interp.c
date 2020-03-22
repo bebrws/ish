@@ -570,7 +570,7 @@ static bool modrm_compute(struct cpu_state *cpu, struct tlb *tlb, addr_t *addr_o
 #define VLOAD(src, dst,z) UNDEFINED
 #define VSTORE(src, dst,z) UNDEFINED
 
-// ok now include the decoding function
+ ok now include the decoding function
 #define DECODER_RET int
 #define DECODER_NAME cpu_step
 #define DECODER_ARGS struct cpu_state *cpu, struct tlb *tlb
@@ -610,7 +610,7 @@ flatten __no_instrument void cpu_run(struct cpu_state *cpu) {
     tlb_flush(&tlb);
     read_wrlock(&cpu->mem->lock);
     int changes = cpu->mem->changes;
-    while (true) {
+//    while (true) {
         int interrupt = cpu_step32(cpu, &tlb);
         if (interrupt == INT_NONE && i++ >= 100000) {
             i = 0;

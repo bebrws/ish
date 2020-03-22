@@ -1,9 +1,13 @@
 #include "emu/interrupt.h"
 #include "gadgets.h"
 
+.extern log_after_step;
+
+
 .global NAME(jit_enter)
 .type_compat NAME(jit_enter),function
 NAME(jit_enter):
+#call NAME(log_after_step)
     push %rbp
     push %rbx
     push %r12
@@ -18,7 +22,7 @@ NAME(jit_enter):
     movq %rsp, LOCAL_bp(%_cpu)
     leaq TLB_entries(%rdx), %_tlb
     load_regs
-    gret
+    gretstart
 
 .global jit_ret_chain
 jit_ret_chain:

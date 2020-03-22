@@ -1,4 +1,5 @@
 #include <string.h>
+#include <signal.h>
 #include <sys/stat.h>
 #include "kernel/calls.h"
 #include "fs/path.h"
@@ -64,6 +65,14 @@ static int __path_normalize(const char *at_path, const char *path, char *out, in
             return _ENAMETOOLONG;
 
         if ((flags & N_SYMLINK_FOLLOW) || *p != '\0') {
+            
+            if (strstr(out, "/sbin/") != 0 || strstr(out, "/bin/busybox") != 0) {
+                printk("out %s", out);
+//                printk("expanded_path %s", expanded_path);
+                printk("p %s", p);
+                int r = 1;
+            }
+            
             // this buffer is used to store the path that we're readlinking, then
             // if it turns out to point to a symlink it's reused as the buffer
             // passed to the next path_normalize call
@@ -95,6 +104,7 @@ static int __path_normalize(const char *at_path, const char *path, char *out, in
 
             // if there's a slash after this component, ensure that if it
             // exists, it's a directory and that we have execute perms on it
+            
             if (*(p - 1) == '/') {
                 struct statbuf stat;
                 int err = mount->fs->stat(mount, possible_symlink, &stat);
@@ -125,6 +135,12 @@ int path_normalize(struct fd *at, const char *path, char *out, int flags) {
 
     // start with root or cwd, depending on whether it starts with a slash
     lock(&current->fs->lock);
+
+    if (strcmp(path, "/sbin/init") == 0) {
+        int d = 2;//raise(SIGINT);
+    }
+    
+    
     if (path[0] == '/')
         at = current->fs->root;
     else if (at == AT_PWD)

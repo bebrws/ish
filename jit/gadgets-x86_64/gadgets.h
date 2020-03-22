@@ -1,4 +1,6 @@
 #include "../gadgets-generic.h"
+//#include "jit/jit.h"
+
 
 # register assignments
 #define _esp r8d
@@ -15,12 +17,26 @@
 #define _addr r13d
 #define _addrq r13
 
+
+.extern log_after_step;
+
+
 .extern jit_exit
 
 .macro .gadget name
     .global.name gadget_\()\name
 .endm
 .macro gret pop=0
+#pushq  %rbp
+#movq   %rsp, %rbp
+#leaq   0x9391e(%rip), %rdi
+#movb   $0x0, %al
+#callq  0x10beacb6
+    addq $((\pop+1)*8), %_ip
+    jmp *-8(%_ip)
+.endm
+
+.macro gretstart pop=0
     addq $((\pop+1)*8), %_ip
     jmp *-8(%_ip)
 .endm

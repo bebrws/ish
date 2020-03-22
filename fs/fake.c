@@ -93,6 +93,7 @@ bool path_read_stat(struct mount *mount, const char *path, struct ish_stat *stat
 void path_create(struct mount *mount, const char *path, struct ish_stat *stat) {
     // insert into stats (stat) values (?)
     sqlite3_bind_blob(mount->stmt.path_create_stat, 1, stat, sizeof(*stat), SQLITE_TRANSIENT);
+    printf("Create stat:\n%s\n", sqlite3_expanded_sql(mount->stmt.path_create_stat));
     db_exec_reset(mount, mount->stmt.path_create_stat);
     // insert or replace into paths values (?, last_insert_rowid())
     bind_path(mount->stmt.path_create_path, 1, path);
@@ -478,13 +479,13 @@ static void __attribute__((constructor)) init_fake_fdops() {
 int fakefs_rebuild(struct mount *mount);
 int fakefs_migrate(struct mount *mount);
 
-#if DEBUG_sql
+//#if DEBUG_sql
 static int trace_callback(unsigned UNUSED(why), void *UNUSED(fuck), void *stmt, void *_sql) {
     char *sql = _sql;
     printk("%d sql trace: %s %s\n", current ? current->pid : -1, sqlite3_expanded_sql(stmt), sql[0] == '-' ? sql : "");
     return 0;
 }
-#endif
+//#endif
 
 static void sqlite_func_change_prefix(sqlite3_context *context, int argc, sqlite3_value **args) {
     assert(argc == 3);
@@ -540,9 +541,9 @@ static int fakefs_mount(struct mount *mount) {
     db_check_error(mount);
     sqlite3_finalize(statement);
 
-#if DEBUG_sql
+//#if DEBUG_sql
     sqlite3_trace_v2(mount->db, SQLITE_TRACE_STMT, trace_callback, NULL);
-#endif
+//#endif
 
     // do this now so fakefs_rebuild can use mount->root_fd
     err = realfs.mount(mount);

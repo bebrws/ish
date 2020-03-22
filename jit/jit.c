@@ -8,6 +8,7 @@
 #include "emu/interrupt.h"
 #include "util/list.h"
 #include "kernel/calls.h"
+#include "kernel/task.h"
 
 static void jit_block_disconnect(struct jit *jit, struct jit_block *block);
 static void jit_block_free(struct jit *jit, struct jit_block *block);
@@ -166,6 +167,9 @@ static inline size_t jit_cache_hash(addr_t ip) {
     return (ip ^ (ip >> 12)) % JIT_CACHE_SIZE;
 }
 
+
+
+
 void cpu_run(struct cpu_state *cpu) {
     struct tlb tlb;
     tlb_init(&tlb, cpu->mem);
@@ -303,4 +307,11 @@ int cpu_step32(struct cpu_state *cpu, struct tlb *tlb) {
     *cpu = frame.cpu;
     jit_block_free(NULL, block);
     return interrupt;
+}
+
+
+
+void log_after_step() {
+    printk("CPU after step\n");
+//    printk(current->cpu);
 }

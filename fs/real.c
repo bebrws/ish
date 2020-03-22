@@ -76,6 +76,7 @@ static int open_flags_fake_from_real(int flags) {
 
 static struct fd *realfs_open(struct mount *mount, const char *path, int flags, int mode) {
     int real_flags = open_flags_real_from_fake(flags);
+    printk("Opening file wiht mount: %s %s", mount->source, fix_path(path));
     int fd_no = openat(mount->root_fd, fix_path(path), real_flags, mode);
     if (fd_no < 0)
         return ERR_PTR(errno_map());

@@ -30,10 +30,13 @@ struct modrm {
     } shift;
 };
 
+// Unnamed enums are a way to set a constat with a variable WITHOUT having that variable take up memory
+// or be addressable
+// https://stackoverflow.com/questions/7147008/the-usage-of-anonymous-enums
 enum {
-    rm_sib = reg_esp,
-    rm_none = reg_esp,
-    rm_disp32 = reg_ebp,
+    rm_sib = reg_esp, // 0b100 or 4
+    rm_none = reg_esp, // 0b100 or 4
+    rm_disp32 = reg_ebp, // 0b101 or 4
 };
 #define MOD(byte) ((byte & 0b11000000) >> 6)
 #define REG(byte) ((byte & 0b00111000) >> 3)
@@ -93,6 +96,7 @@ static inline bool modrm_decode32(addr_t *ip, struct tlb *tlb, struct modrm *mod
         READ(offset);
         modrm->offset = offset;
     }
+    
 #undef READ
 
     TRACE("reg=%s opcode=%d ", reg32_name(modrm->reg), modrm->opcode);

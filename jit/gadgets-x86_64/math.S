@@ -15,6 +15,8 @@
 # this would have been just a few nice compact nested loops, but gas said "nuh uh"
 
 .macro _do_op op, arg, size, s, ss
+#syscall
+#int3
     .ifc \op,load
         mov\ss \arg, %tmp\s
         .exitm
@@ -121,6 +123,7 @@
             gret
     .endr
 .endm
+
 
 .irp op, load,store,xchg,add,sub,adc,sbb,and,or,xor
     .irp size, SIZE_LIST

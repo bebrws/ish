@@ -9,6 +9,7 @@
 #include "fs/dev.h"
 #include "kernel/task.h"
 #include "kernel/errno.h"
+#include "debug.h"
 
 struct mount *find_mount_and_trim_path(char *path) {
     struct mount *mount = mount_find(path);
@@ -39,10 +40,12 @@ struct fd *generic_openat(struct fd *at, const char *path_raw, int flags, int mo
     char path[MAX_PATH];
     int err = path_normalize(at, path_raw, path, N_SYMLINK_FOLLOW |
             (flags & O_CREAT_ ? N_PARENT_DIR_WRITE : 0));
+    printk("PN: Normalized path: %s", path);
     if (err < 0)
         return ERR_PTR(err);
     struct mount *mount = find_mount_and_trim_path(path);
     lock(&inodes_lock); // TODO: don't do this
+    printk("OPEN: Opening path: %s", path);
     struct fd *fd = mount->fs->open(mount, path, flags, mode);
     if (IS_ERR(fd)) {
         unlock(&inodes_lock);

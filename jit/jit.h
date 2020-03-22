@@ -62,7 +62,7 @@ void jit_free(struct jit *jit);
 // Invalidate all jit blocks in the given page. Locks the jit. Should only be
 // called by memory.c in conjunction with mem_changed.
 void jit_invalidate_page(struct jit *jit, page_t page);
-
+extern void log_after_step();
 #endif
 
 #endif
