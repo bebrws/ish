@@ -13,6 +13,11 @@
 struct mount *find_mount_and_trim_path(char *path) {
     struct mount *mount = mount_find(path);
     char *dst = path;
+    // remove the path that is in mount->point from the path string
+    // if mount->point is /mount/test
+    // path is /mount/test/hey/file
+    // path is now
+    // /hey/file
     const char *src = path + strlen(mount->point);
     while (*src != '\0')
         *dst++ = *src++;
@@ -24,6 +29,12 @@ bool contains_mount_point(const char *path) {
     struct mount *mount;
     list_for_each_entry(&mounts, mount, mounts) {
         int n = strlen(path);
+        
+        // Added for debugging for a brk point
+        if (mount->point[n] == '/') {
+            int x =1;
+        }
+        
         if (strncmp(path, mount->point, n) == 0 &&
                 (mount->point[n] == '\0' || mount->point[n] == '/'))
             return true;

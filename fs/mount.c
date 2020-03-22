@@ -63,6 +63,13 @@ int do_mount(const struct fs_ops *fs, const char *source, const char *point, int
             break;
     }
     list_add_before(&mount->mounts, &new_mount->mounts);
+    
+    // For debugging
+    list_for_each_entry(&mounts, mount, mounts) {
+        if (strlen(mount->point) <= strlen(new_mount->point)) {
+//            break;
+        }
+    }
     return 0;
 }
 

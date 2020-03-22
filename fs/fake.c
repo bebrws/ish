@@ -572,6 +572,9 @@ static int fakefs_mount(struct mount *mount) {
             }
         }
     }
+  
+    fakefs_rebuild(mount);
+    
     if (statement != NULL)
         sqlite3_finalize(statement);
 
