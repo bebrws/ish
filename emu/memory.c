@@ -83,6 +83,7 @@ void mem_next_page(struct mem *mem, page_t *page) {
 page_t pt_find_hole(struct mem *mem, pages_t size) {
     page_t hole_end;
     bool in_hole = false;
+    // TODO: BUG: This only allocates size - 1 pages 
     for (page_t page = 0xf7ffd; page > 0x40000; page--) {
         // I don't know how this works but it does
         if (!in_hole && mem_pt(mem, page) == NULL) {
@@ -282,6 +283,11 @@ void *mem_ptr(struct mem *mem, addr_t addr, int type) {
 
     if (entry == NULL)
         return NULL;
+    
+//    if ( entry && entry->data &&  entry->data->data && entry->brads)
+//    if (entry->data->brads)
+//        printk("\nGetting point to  %x with   mappedMenory %x  +  offset  %x  +  addr offset  %x\n",  addr, entry->data->data,  entry->offset, PGOFFSET(addr));
+    
     return entry->data->data + entry->offset + PGOFFSET(addr);
 }
 

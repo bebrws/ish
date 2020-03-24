@@ -3,6 +3,12 @@
 #include "emu/modrm.h"
 #include "emu/interrupt.h"
 
+
+
+#include "memory.h"
+#include "kernel/task.h"
+
+
 #undef oz
 #define oz OP_SIZE
 #define reg_ah reg_sp
@@ -34,6 +40,30 @@ __no_instrument DECODER_RET glue(DECODER_NAME, OP_SIZE)(DECODER_ARGS) {
 restart:
     TRACEIP();
     READINSN;
+    
+    
+    
+    
+
+    
+    
+    struct pt_entry * pe = mem_pt(current->mem, PAGE(state->ip));
+    struct mem *mem = current->mem;
+    
+    printk("\nip is %x\n", state->ip);
+    printk("INTERP: Just read op %x\n", insn);
+    printk("\n Page table for ip %x    address offset  %x \n", PAGE(state->ip), PGOFFSET(state->ip));
+    if (pe && pe->data) {
+        struct data *d = pe->data;
+        printk("\n memory offset:  %x   file offset: %x %x \n", pe->offset,  d->file_offset);
+        
+        printk("\n ip in group of pages   start %x   num pages  %x    dbgstr   %s  \n",  d->pgstart, d->pgnum, d->debugString);
+    }
+    
+
+    
+    
+    
     switch (insn) {
 #define MAKE_OP(x, OP, op) \
         case x+0x0: TRACEI(op " reg8, modrm8"); \

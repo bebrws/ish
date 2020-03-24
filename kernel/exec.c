@@ -15,6 +15,8 @@
 #include "kernel/elf.h"
 #include "kernel/vdso.h"
 
+#include <fcntl.h>
+
 #define ARGV_MAX 32 * PAGE_SIZE
 
 struct exec_args {
@@ -71,17 +73,18 @@ static int read_prg_headers(struct fd *fd, struct elf_header header, struct prg_
     return 0;
 }
 
-static int load_entry(struct prg_header ph, addr_t bias, struct fd *fd) {
+static int load_entry(struct prg_header ph, addr_t bias, struct fd *fd, const char *debugString) {
     int err;
 
     addr_t addr = ph.vaddr + bias;
     addr_t offset = ph.offset;
     addr_t memsize = ph.memsize;
     addr_t filesize = ph.filesize;
-
+    //___1****1___
     int flags = P_READ;
     if (ph.flags & PH_W) flags |= P_WRITE;
 
+    printk("\nTASK ELF:  Load Entry addr  %x  offset   %x  memsize   %x   fielsize   %x\n",  addr, offset, memsize, filesize);
     if ((err = fd->ops->mmap(fd, current->mem, PAGE(addr),
                     PAGE_ROUND_UP(filesize + PGOFFSET(addr)),
                     offset - PGOFFSET(addr), flags, MMAP_PRIVATE)) < 0)
@@ -89,6 +92,16 @@ static int load_entry(struct prg_header ph, addr_t bias, struct fd *fd) {
     // TODO find a better place for these to avoid code duplication
     mem_pt(current->mem, PAGE(addr))->data->fd = fd_retain(fd);
     mem_pt(current->mem, PAGE(addr))->data->file_offset = offset - PGOFFSET(addr);
+    
+    mem_pt(current->mem, PAGE(addr))->data->pgstart = PAGE(addr);
+    mem_pt(current->mem, PAGE(addr))->data->pgnum =  PAGE_ROUND_UP(filesize + PGOFFSET(addr));
+    sprintf(mem_pt(current->mem, PAGE(addr))->data->debugString, "ph offset %x  - %s", offset, debugString ? debugString : "" );
+    
+    
+    mem_pt(current->mem, PAGE(addr))->brads = 1;
+    mem_pt(current->mem, PAGE(addr))->data->brads = 1;
+    
+    printk("\n TASK ELF:  -  Set first page mem file offset to  %x\n", offset - PGOFFSET(addr));
 
     if (memsize > filesize) {
         // put zeroes between addr + filesize and addr + memsize, call that bss
@@ -142,6 +155,12 @@ static addr_t find_hole_for_elf(struct elf_header *header, struct prg_header *ph
 static int elf_exec(struct fd *fd, const char *file, struct exec_args argv, struct exec_args envp) {
     int err = 0;
 
+
+    char tmpBuf[MAX_PATH];
+    int ferr = fcntl(fd->real_fd, F_GETPATH, tmpBuf);
+
+    
+    
     // read the headers
     struct elf_header header;
     if ((err = read_header(fd, &header)) < 0)
@@ -219,7 +238,7 @@ static int elf_exec(struct fd *fd, const char *file, struct exec_args argv, stru
                 bias = find_hole_for_elf(&header, ph);
         }
 
-        if ((err = load_entry(ph[i], bias, fd)) < 0)
+        if ((err = load_entry(ph[i], bias, fd, file)) < 0)
             goto beyond_hope;
 
         // load_addr is used to get a value for AX_PHDR et al
@@ -235,6 +254,9 @@ static int elf_exec(struct fd *fd, const char *file, struct exec_args argv, stru
     }
 
     addr_t entry = bias + header.entry_point;
+    
+    printk("\n TASK ELF:  - cur entry point %x\n", entry);
+    printk("\n TASK ELF:  - bias %x orig entry point %x\n", bias, header.entry_point);
     addr_t interp_base = 0;
 
     if (interp_name) {
@@ -243,10 +265,12 @@ static int elf_exec(struct fd *fd, const char *file, struct exec_args argv, stru
         for (int i = interp_header.phent_count - 1; i >= 0; i--) {
             if (interp_ph[i].type != PT_LOAD)
                 continue;
-            if ((err = load_entry(interp_ph[i], interp_base, interp_fd)) < 0)
+            if ((err = load_entry(interp_ph[i], interp_base, interp_fd, file)) < 0)
                 goto beyond_hope;
         }
         entry = interp_base + interp_header.entry_point;
+        printk("\n TASK ELF:  Interp entry point %x\n", entry);
+        printk("\n TASK ELF:   - interp_base %x interp_header entry point%x\n", bias, interp_header.entry_point);
     }
 
     // map vdso
@@ -265,6 +289,9 @@ static int elf_exec(struct fd *fd, const char *file, struct exec_args argv, stru
     current->mm->vdso = vdso_page << PAGE_BITS;
     addr_t vdso_entry = current->mm->vdso + ((struct elf_header *) vdso_data)->entry_point;
 
+    printk("\TASK ELF: VDSO mapped to page %x address point %x\n", vdso_page, vdso_page << 12);
+    printk("\nTASK ELF:   - vdso_page entry point%x\n", vdso_entry);
+    
     // map 3 empty "vvar" pages to satisfy ptraceomatic
 #define NUM_VVAR 3
     page_t vvar_page = pt_find_hole(current->mem, NUM_VVAR);
@@ -377,6 +404,12 @@ static int elf_exec(struct fd *fd, const char *file, struct exec_args argv, stru
         goto beyond_hope;
     p += sizeof(aux);
 
+    
+    
+    printk("\n TASK ELF:  Configuring the cpu state, setting eip to %x \n", entry);
+//    printk("\n  - vdso_page entry point%x\n", vdso_entry);
+    
+    
     current->mm->stack_start = sp;
     current->cpu.esp = sp;
     current->cpu.eip = entry;

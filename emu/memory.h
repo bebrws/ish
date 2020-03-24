@@ -53,6 +53,13 @@ typedef dword_t pages_t;
 #define LEAK_DEBUG 0
 
 struct data {
+    
+    // brads debugging
+    page_t pgstart;
+    page_t pgnum;
+    char debugString[4096];
+    
+    int brads;
     void *data; // immutable
     size_t size; // also immutable
     atomic_uint refcount;
@@ -67,6 +74,7 @@ struct data {
 #endif
 };
 struct pt_entry {
+    int brads;
     struct data *data;
     size_t offset;
     unsigned flags;
