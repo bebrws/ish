@@ -91,6 +91,10 @@ static int load_entry(struct prg_header ph, addr_t bias, struct fd *fd, const ch
         return err;
     // TODO find a better place for these to avoid code duplication
     mem_pt(current->mem, PAGE(addr))->data->fd = fd_retain(fd);
+    // If this is being mapped into memory allocated not ona page boundary there will be some number of bytes
+    // before the start of the, this number of bytes is PGOFFSET(addr)
+    // The offset from the elf header was based off of the file starting and index 0 and here
+    // we could be starting from x%0xfff bytes into a page
     mem_pt(current->mem, PAGE(addr))->data->file_offset = offset - PGOFFSET(addr);
     
     mem_pt(current->mem, PAGE(addr))->data->pgstart = PAGE(addr);

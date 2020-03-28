@@ -6,9 +6,7 @@
 #include "util/list.h"
 #include "util/sync.h"
 #include "misc.h"
-#if ENGINE_JIT
-struct jit;
-#endif
+
 
 // top 20 bits of an address, i.e. address >> 12
 typedef dword_t page_t;
@@ -19,10 +17,7 @@ struct mem {
     struct pt_entry **pgdir;
     int pgdir_used;
 
-    // TODO put these in their own mm struct maybe
-#if ENGINE_JIT
-    struct jit *jit;
-#endif
+
 
     wrlock_t lock;
 };
@@ -78,9 +73,7 @@ struct pt_entry {
     struct data *data;
     size_t offset;
     unsigned flags;
-#if ENGINE_JIT
-    struct list blocks[2];
-#endif
+
 };
 // page flags
 // P_READ and P_EXEC are ignored for now

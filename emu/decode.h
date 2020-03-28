@@ -39,7 +39,25 @@ __no_instrument DECODER_RET glue(DECODER_NAME, OP_SIZE)(DECODER_ARGS) {
 
 restart:
     TRACEIP();
-    READINSN;
+    
+    
+//    READINSN;
+
+    printk("\nip  before is %x\n", state->ip);
+if (!tlb_read(tlb, state->ip, &insn, 1)) do {
+        do {
+            do {
+                extern void gadget_interrupt(void);
+                gen(state, (unsigned long)(gadget_interrupt));
+            } while (0);
+            gen(state, (unsigned long)(13));
+            gen(state, (unsigned long)(saved_ip));
+        } while (0);
+        return 0;
+    } while (0);
+    state->ip += 1;
+    
+    
     
     
     
@@ -50,7 +68,7 @@ restart:
     struct pt_entry * pe = mem_pt(current->mem, PAGE(state->ip));
     struct mem *mem = current->mem;
     
-    printk("\nip is %x\n", state->ip);
+    printk("\nip after is %x\n", state->ip);
     printk("INTERP: Just read op %x\n", insn);
     printk("\n Page table for ip %x    address offset  %x \n", PAGE(state->ip), PGOFFSET(state->ip));
     if (pe && pe->data) {

@@ -1,0 +1,14 @@
+[binaries]
+c = 'clang'
+ar = 'ar'
+
+[host_machine]
+system = 'darwin'
+cpu_family = 'x86_64'
+cpu = 'x86_64'
+endian = 'little'
+
+[properties]
+c_args = ['-arch', 'x86_64']
+needs_exe_wrapper = true
+

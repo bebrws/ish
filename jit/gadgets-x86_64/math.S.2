@@ -1,0 +1,585 @@
+# 1 "jit/gadgets-x86_64/math.S"
+# 1 "<built-in>" 1
+# 1 "jit/gadgets-x86_64/math.S" 2
+# 1 "jit/gadgets-x86_64/gadgets.h" 1
+# 1 "jit/gadgets-x86_64/../gadgets-generic.h" 1
+# 1 "./build/cpu-offsets.h" 1
+# 2 "jit/gadgets-x86_64/../gadgets-generic.h" 2
+
+
+
+
+
+
+ # sync with enum reg
+
+ # sync with enum arg
+
+ # sync with enum size
+
+
+ # darwin/linux compatibility
+.macro .pushsection_rodata
+
+    .pushsection __DATA,__const
+
+
+
+.endm
+.macro .pushsection_bullshit
+
+    .pushsection __TEXT,__text_bullshit,regular,pure_instructions
+
+
+
+.endm
+
+
+
+
+
+
+.macro .global.name name
+    .global _\name
+    _\name\():
+.endm
+
+.macro .type_compat type:vararg
+
+
+
+.endm
+
+ # an array of gadgets
+.macro _gadget_array_start name
+    .pushsection_rodata
+    .type_compat \name\()_gadgets,@object
+    .global.name \name\()_gadgets
+.endm
+
+.macro gadgets type, list:vararg
+    .irp arg, \list
+        .ifndef _gadget_\type\()_\arg
+            .set _gadget_\type\()_\arg, 0
+        .endif
+        .quad _gadget_\type\()_\arg
+    .endr
+.endm
+
+.macro .gadget_list type, list:vararg
+    _gadget_array_start \type
+        gadgets \type, \list
+    .popsection
+.endm
+
+.macro .gadget_list_size type, list:vararg
+    _gadget_array_start \type
+        # sync with enum size
+        gadgets \type\()8, \list
+        gadgets \type\()16, \list
+        gadgets \type\()32, \list
+        gadgets \type\()64, \list
+        gadgets \type\()80, \list
+    .popsection
+.endm
+
+.macro .gadget_array type
+    .gadget_list_size \type, reg_a,reg_c,reg_d,reg_b,reg_sp,reg_bp,reg_si,reg_di,imm,mem,addr,gs
+.endm
+
+ # jfc
+ # https:
+ # https:
+
+
+
+
+
+
+ # vim: ft=gas
+# 2 "jit/gadgets-x86_64/gadgets.h" 2
+
+
+
+ # register assignments
+# 21 "jit/gadgets-x86_64/gadgets.h"
+.extern log_after_step;
+
+
+.extern jit_exit
+
+.macro .gadget name
+    .global.name gadget_\()\name
+.endm
+.macro gret pop=0
+ #pushq %rbp
+ #movq %rsp, %rbp
+ #leaq 0x9391e(%rip), %rdi
+ #movb $0x0, %al
+ #callq 0x10beacb6
+    addq $((\pop+1)*8), %r9
+    jmp *-8(%r9)
+.endm
+
+.macro gretstart pop=0
+    addq $((\pop+1)*8), %r9
+    jmp *-8(%r9)
+.endm
+
+ # memory reading and writing
+.irp type, read,write
+
+.macro \type\()_prep size, id
+    movl %r13d, %r14d
+    shrl $12, %r14d
+    andl $0x3ff, %r14d
+    movl %r13d, %r15d
+    shrl $22, %r15d
+    xor %r15d, %r14d
+    shll $4, %r14d
+    movl %r13d, %r15d
+    andl $0xfff, %r15d
+    cmpl $(0x1000-(\size/8)), %r15d
+    ja crosspage_load_\id
+    movl %r13d, %r15d
+    andl $0xfffff000, %r15d
+    .ifc \type,read
+        cmpl 0(%r12,%r14), %r15d
+    .else
+        cmpl 4(%r12,%r14), %r15d
+    .endif
+    movl %r15d, -16 +8(%r12)
+    jne handle_miss_\id
+    addq 8(%r12,%r14), %r13
+back_\id :
+
+.pushsection_bullshit
+handle_miss_\id :
+    call handle_\type\()_miss
+    jmp back_\id
+crosspage_load_\id :
+    movq $(\size/8), %r14
+    call crosspage_load
+    jmp back_\id
+.popsection
+.endm
+
+.endr
+.macro write_done size, id
+    leaq 376(%r11), %r14
+    cmpq %r13, %r14
+    je crosspage_store_\id
+back_write_done_\id :
+.pushsection_bullshit
+crosspage_store_\id :
+    movq $(\size/8), %r14
+    call crosspage_store
+    jmp back_write_done_\id
+.popsection
+.endm
+
+.macro _invoke size, reg, post, macro:vararg
+    .if \size == 32
+        \macro reg_\reg, e\reg\post
+    .else
+        \macro reg_\reg, \reg\post
+    .endif
+.endm
+.macro .each_reg_size size, macro:vararg
+    .irp reg, a,b,c,d
+        _invoke \size, \reg, x, \macro
+    .endr
+    .irp reg, si,di,bp
+        _invoke \size, \reg, , \macro
+    .endr
+    .if \size == 32
+        \macro reg_sp, r8d
+    .else
+        \macro reg_sp, r8w
+    .endif
+.endm
+.macro .each_reg macro:vararg
+    .each_reg_size 32, \macro
+.endm
+
+.macro ss size, macro, args:vararg
+    .ifnb \args
+        .if \size == 8
+            \macro \args, \size, b, b
+        .elseif \size == 16
+            \macro \args, \size, w, w
+        .elseif \size == 32
+            \macro \args, \size, d, l
+        .else
+            .error "bad size"
+        .endif
+    .else
+        .if \size == 8
+            \macro \size, b, b
+        .elseif \size == 16
+            \macro \size, w, w
+        .elseif \size == 32
+            \macro \size, d, l
+        .else
+            .error "bad size"
+        .endif
+    .endif
+.endm
+
+.macro setf_c
+    setc 188(%r11)
+.endm
+.macro setf_oc
+    seto 189(%r11)
+    setf_c
+.endm
+.macro setf_a src, dst, ss
+    mov\ss \src, 196(%r11)
+    mov\ss \dst, 200(%r11)
+    orl $8, 204(%r11)
+.endm
+.macro clearf_a
+    andl $~16, 180(%r11)
+    andl $~8, 204(%r11)
+.endm
+
+
+
+
+
+.macro clearf_oc
+    movl $$0, 189(%r11)
+    movl $$0, 188(%r11)
+.endm
+.macro setf_zsp res, ss
+    .ifnc \ss,l
+        movs\ss\()l \res, %r10d
+    .endif
+    movl %r10d, 192(%r11)
+    orl $(2|4|1), 204(%r11)
+.endm
+
+.macro save_c
+    push %rax
+    push %rcx
+    push %rdx
+    push %rsi
+    push %rdi
+    push %r8
+    push %r9
+    push %r10
+    push %r11
+    sub $$8, %rsp # 16 byte alignment is so annoying
+.endm
+.macro restore_c
+    add $$8, %rsp
+    pop %r11
+    pop %r10
+    pop %r9
+    pop %r8
+    pop %rdi
+    pop %rsi
+    pop %rdx
+    pop %rcx
+    pop %rax
+.endm
+
+.macro load_regs
+    movl 16(%r11), %eax
+    movl 20(%r11), %ebx
+    movl 24(%r11), %ecx
+    movl 28(%r11), %edx
+    movl 32(%r11), %esi
+    movl 36(%r11), %edi
+    movl 40(%r11), %ebp
+    movl 44(%r11), %r8d
+.endm
+
+.macro save_regs
+    movl %eax, 16(%r11)
+    movl %ebx, 20(%r11)
+    movl %ecx, 24(%r11)
+    movl %edx, 28(%r11)
+    movl %esi, 32(%r11)
+    movl %edi, 36(%r11)
+    movl %ebp, 40(%r11)
+    movl %r8d, 44(%r11)
+.endm
+
+ # vim: ft=gas
+# 2 "jit/gadgets-x86_64/math.S" 2
+
+.gadget load32_addr
+    movl %r13d, %r10d
+    gret
+
+.gadget load16_gs
+    movw 344(%r11), %r10w
+    gret
+
+.gadget store16_gs
+    movw %r10w, 344(%r11)
+    gret
+
+ # this would have been just a few nice compact nested loops, but gas said "nuh uh"
+
+.macro _do_op op, arg, size, s, ss
+ #syscall
+ #int3
+    .ifc \op,load
+        mov\ss \arg, %r10\s
+        .exitm
+    .else; .ifc \op,store
+        mov\ss %r10\s, \arg
+        .exitm
+    .endif; .endif
+
+    .irp da_op0, add,sub,adc,sbb ; .ifc \op,\da_op0
+        mov\ss \arg, %r14\s
+        setf_a src=%r14\s, dst=%r10\s, ss=\ss
+    .endif ; .endr
+    .irp da_op1, and,or,xor ; .ifc \op,\da_op1
+        clearf_a
+        clearf_oc
+    .endif ; .endr
+    .irp da_op2, adc,sbb ; .ifc \op,\da_op2
+        btw $0, 188(%r11)
+    .endif ; .endr
+
+    \op\ss \arg, %r10\s
+
+    .irp da_op3, add,sub,adc,sbb,imul ; .ifc \op,\da_op3
+        setf_oc
+    .endif ; .endr
+    .irp da_op4, add,sub,adc,sbb,and,or,xor ; .ifc \op,\da_op4
+        setf_zsp %r10\s, \ss
+    .endif ; .endr
+    .irp da_op5, bsf,bsr ; .ifc \op,\da_op5
+        # I sure hope this isn't too hot
+        setzb %r14b
+        andb $~(1<<6), 180(%r11)
+        shlb $6, %r14b
+        orb %r14b, 180(%r11)
+        andl $~2, 204(%r11)
+    .endif ; .endr
+.endm
+.macro do_op op, size, arg
+    ss \size, _do_op, \op, \arg
+.endm
+
+.macro do_reg_op op, size, reg
+    .gadget \op\size\()_reg_\reg
+        .if \size == 32
+            do_op \op, \size, %e\reg\()x
+        .elseif \size == 16
+            do_op \op, \size, %\reg\()x
+        .elseif \size == 8
+            do_op \op, \size, %\reg\()l
+        .endif
+        gret
+.endm
+
+.macro do_hi_op op, size, reg
+    xchg %\reg\()h, %\reg\()l
+    do_op \op, \size, %\reg\()l
+    xchg %\reg\()h, %\reg\()l
+.endm
+
+.macro do_op_size op, size
+    .ifnc \op,store
+        .gadget \op\size\()_imm
+            do_op \op, \size, (%r9)
+            gret 1
+    .endif
+
+    .gadget \op\size\()_mem
+        .ifc \op,store
+            write_prep \size, \op\size\()_mem
+        .else
+            read_prep \size, \op\size\()_mem
+        .endif
+        do_op \op, \size, (%r13)
+        .ifc \op,store
+            write_done \size, \op\size\()_mem
+        .endif
+        gret 1
+
+    .irp reg, a,b,c,d
+        do_reg_op \op, \size, \reg
+    .endr
+
+    .irp reg, si,di,sp,bp
+        .gadget \op\size\()_reg_\reg
+            .if \size == 32
+                .ifnc \reg,sp
+                    do_op \op, \size, %e\reg
+                .else
+                    do_op \op, \size, %r8d
+                .endif
+            .elseif \size == 16
+                .ifnc \reg,sp
+                    do_op \op, \size, %\reg
+                .else
+                    do_op \op, \size, %r8w
+                .endif
+            .elseif \size == 8
+                .ifc \reg,sp; do_hi_op \op, \size, a; .else
+                .ifc \reg,bp; do_hi_op \op, \size, c; .else
+                .ifc \reg,si; do_hi_op \op, \size, d; .else
+                .ifc \reg,di; do_hi_op \op, \size, b
+                .endif; .endif; .endif; .endif
+            .endif
+            gret
+    .endr
+.endm
+
+
+.irp op, load,store,xchg,add,sub,adc,sbb,and,or,xor
+    .irp size, 8,16,32
+        do_op_size \op, \size
+    .endr
+    .gadget_array \op
+.endr
+.irp op, imul,bsf,bsr
+    .irp size, 16,32
+        do_op_size \op, \size
+    .endr
+    .gadget_array \op
+.endr
+
+ # same as above, but only atomics
+.macro _do_op_atomic op, arg, size, s, ss
+    .irp da_op6, and,or,xor ; .ifc \op,\da_op6
+        clearf_a
+        clearf_oc
+    .endif ; .endr
+    .irp da_op7, adc,sbb ; .ifc \op,\da_op7
+        btw $0, 188(%r11)
+    .endif ; .endr
+
+    mov\ss \arg, %r15\s
+    xchg %r15, %rax # cmpxchg uses rax as implicit operand
+    .ifc \op,xadd
+        push %r10
+    .endif
+1:
+    mov %rax, %r14
+    .ifc \op,xadd
+        mov (%rsp), %r10
+        xchg %r10, %r14
+    .endif
+    .irp da_op8, add,sub,adc,sbb,xadd ; .ifc \op,\da_op8
+        setf_a src=%r10\s, dst=%r14\s, ss=\ss
+    .endif ; .endr
+    .irp da_op9, inc,dec ; .ifc \op,\da_op9
+        setf_a src=$1, dst=%r14\s, ss=\ss
+    .endif ; .endr
+
+    .irp da_op10, add,sub,adc,sbb,and,or,xor ; .ifc \op,\da_op10
+        \op\ss %r10\s, %r14\s
+    .endif ; .endr
+    .ifc \op,xadd
+        add\ss %r10\s, %r14\s
+    .endif
+    .irp da_op11, inc,dec ; .ifc \op,\da_op11
+        \op\ss %r14\s
+    .endif ; .endr
+    lock cmpxchg\ss %r14\s, \arg
+    jnz 1b
+    mov %r15, %rax
+    .ifc \op,xadd
+        add $8, %rsp
+    .endif
+
+    .irp da_op12, add,sub,adc,sbb,xadd ; .ifc \op,\da_op12
+        setf_oc
+    .endif ; .endr
+    .irp da_op13, inc,dec ; .ifc \op,\da_op13
+        seto 189(%r11)
+    .endif ; .endr
+    # setf_zsp is apparently broken in such a way that it can only use r10d
+    xchg %r14, %r10
+    setf_zsp %r10\s, \ss
+    xchg %r14, %r10
+.endm
+.macro do_op_atomic op, size, arg
+    ss \size, _do_op_atomic, \op, \arg
+.endm
+
+.macro do_op_size_atomic op, size
+    .gadget atomic_\op\size\()_mem
+        write_prep \size, atomic_\op\size\()_mem
+        do_op_atomic \op, \size, (%r13)
+        write_done \size, atomic_\op\size\()_mem
+        gret 1
+.endm
+
+.irp op, add,sub,adc,sbb,and,or,xor,inc,dec,xadd
+    .irp size, 8,16,32
+        do_op_size_atomic \op, \size
+    .endr
+    .gadget_array atomic_\op
+.endr
+
+ # unary operations (well, only one explicit operand)
+
+.irp op, inc,dec
+    .macro do_\op size, s, ss
+        setf_a src=$1, dst=%r10\s, ss=\ss
+        \op\()\ss %r10\s
+        seto 189(%r11)
+        setf_zsp %r10\s, \ss
+    .endm
+.endr
+.macro do_sign_extend size, s, ss
+    .if \size != 32
+        movs\ss\()l %r10\s, %r10d
+    .endif
+.endm
+.macro do_zero_extend size, s, ss
+    .if \size != 32
+        movz\ss\()l %r10\s, %r10d
+    .endif
+.endm
+.macro do_div size, s, ss
+    div\ss %r10\s
+.endm
+.macro do_idiv size, s, ss
+    idiv\ss %r10\s
+.endm
+.macro do_mul size, s, ss
+    mul\ss %r10\s
+    setf_oc
+.endm
+.macro do_imul1 size, s, ss
+    imul\ss %r10\s
+    setf_oc
+.endm
+.macro do_not size, s, ss
+    not\ss %r10\s
+.endm
+
+.irp op, inc,dec,sign_extend,zero_extend,div,idiv,mul,imul1,not
+    .irp size, 8,16,32
+        .gadget \op\()_\size
+            ss \size, do_\op
+            gret
+    .endr
+    .gadget_list \op, 8,16,32
+.endr
+
+.gadget cvt_16
+    cwd
+    gret
+.gadget cvt_32
+    cdq
+    gret
+.gadget_list cvt, 8,16,32
+
+.gadget cvte_16
+    cbw
+    gret
+.gadget cvte_32
+    cwde
+    gret
+.gadget_list cvte, 8,16,32

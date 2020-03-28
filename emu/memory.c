@@ -23,18 +23,12 @@ void mem_init(struct mem *mem) {
     mem->pgdir = calloc(MEM_PGDIR_SIZE, sizeof(struct pt_entry *));
     mem->pgdir_used = 0;
     mem->changes = 0;
-#if ENGINE_JIT
-    mem->jit = jit_new(mem);
-#endif
     wrlock_init(&mem->lock);
 }
 
 void mem_destroy(struct mem *mem) {
     write_wrlock(&mem->lock);
     pt_unmap_always(mem, 0, MEM_PAGES);
-#if ENGINE_JIT
-    jit_free(mem->jit);
-#endif
     for (int i = 0; i < MEM_PGDIR_SIZE; i++) {
         if (mem->pgdir[i] != NULL)
             free(mem->pgdir[i]);
@@ -150,9 +144,6 @@ int pt_unmap_always(struct mem *mem, page_t start, pages_t pages) {
         struct pt_entry *pt = mem_pt(mem, page);
         if (pt == NULL)
             continue;
-#if ENGINE_JIT
-        jit_invalidate_page(mem->jit, page);
-#endif
         struct data *data = pt->data;
         mem_pt_del(mem, page);
         if (--data->refcount == 0) {
@@ -275,10 +266,6 @@ void *mem_ptr(struct mem *mem, addr_t addr, int type) {
             write_wrunlock(&mem->lock);
             read_wrlock(&mem->lock);
         }
-#if ENGINE_JIT
-        // get rid of any compiled blocks in this page
-        jit_invalidate_page(mem->jit, page);
-#endif
     }
 
     if (entry == NULL)

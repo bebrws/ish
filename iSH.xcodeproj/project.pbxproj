@@ -10,7 +10,6 @@
 		650B337422EA235C00B4C03E /* PasteboardDevice.m in Sources */ = {isa = PBXBuildFile; fileRef = 650B337322EA235C00B4C03E /* PasteboardDevice.m */; };
 		8632A7BF219A59FB00F02325 /* UserPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = 8632A7BE219A59FB00F02325 /* UserPreferences.m */; };
 		9A28E4EA219A8B670073D200 /* AboutAppearanceViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 9A28E4E9219A8B670073D200 /* AboutAppearanceViewController.m */; };
-		B1017E912427D855005B0A32 /* math.S in Sources */ = {isa = PBXBuildFile; fileRef = BB88F4822152F75A00A341FD /* math.S */; };
 		B1017E932427D997005B0A32 /* cpu-offsets.h in Sources */ = {isa = PBXBuildFile; fileRef = B1017E922427D997005B0A32 /* cpu-offsets.h */; };
 		BB0FC5921F980A6C00803272 /* Terminal.m in Sources */ = {isa = PBXBuildFile; fileRef = BB0FC5911F980A6B00803272 /* Terminal.m */; };
 		BB101B382364CF57000A93BC /* FontPickerViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = BB101B372364CF57000A93BC /* FontPickerViewController.m */; };
@@ -118,6 +117,7 @@
 		9A28E4E8219A8B670073D200 /* AboutAppearanceViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AboutAppearanceViewController.h; sourceTree = "<group>"; };
 		9A28E4E9219A8B670073D200 /* AboutAppearanceViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AboutAppearanceViewController.m; sourceTree = "<group>"; };
 		B1017E922427D997005B0A32 /* cpu-offsets.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "cpu-offsets.h"; sourceTree = "<group>"; };
+		B17212612429F61700CCF3EC /* genPreProcessed.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = genPreProcessed.c; path = emu/genPreProcessed.c; sourceTree = SOURCE_ROOT; };
 		BB0FC5901F980A6B00803272 /* Terminal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Terminal.h; sourceTree = "<group>"; };
 		BB0FC5911F980A6B00803272 /* Terminal.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Terminal.m; sourceTree = "<group>"; };
 		BB101B362364CF57000A93BC /* FontPickerViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FontPickerViewController.h; sourceTree = "<group>"; };
@@ -133,7 +133,6 @@
 		BB101B572364EAF0000A93BC /* fake-migrate.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = "fake-migrate.c"; sourceTree = "<group>"; };
 		BB101B582364EAF0000A93BC /* pty.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = pty.c; sourceTree = "<group>"; };
 		BB101B592364EAF0000A93BC /* inode.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = inode.c; sourceTree = "<group>"; };
-		BB101B5A2364EB66000A93BC /* math.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = math.h; sourceTree = "<group>"; };
 		BB101B5C2364EB88000A93BC /* futex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = futex.h; sourceTree = "<group>"; };
 		BB101B5D2364EB88000A93BC /* eventfd.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = eventfd.c; sourceTree = "<group>"; };
 		BB101B5E2364EB88000A93BC /* random.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = random.c; sourceTree = "<group>"; };
@@ -263,23 +262,7 @@
 		BB86370A2167F4F200E7ADC0 /* tlb.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = tlb.c; sourceTree = "<group>"; };
 		BB86370B2167F4F200E7ADC0 /* tlb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tlb.h; sourceTree = "<group>"; };
 		BB88F4722152F75A00A341FD /* frame.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = frame.h; sourceTree = "<group>"; };
-		BB88F4742152F75A00A341FD /* bits.S */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = bits.S; sourceTree = "<group>"; };
-		BB88F4752152F75A00A341FD /* control.S */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = control.S; sourceTree = "<group>"; };
-		BB88F4762152F75A00A341FD /* entry.S */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = entry.S; sourceTree = "<group>"; };
-		BB88F4772152F75A00A341FD /* gadgets.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gadgets.h; sourceTree = "<group>"; };
-		BB88F4782152F75A00A341FD /* math.S */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = math.S; sourceTree = "<group>"; };
-		BB88F4792152F75A00A341FD /* memory.S */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = memory.S; sourceTree = "<group>"; };
-		BB88F47A2152F75A00A341FD /* misc.S */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = misc.S; sourceTree = "<group>"; };
-		BB88F47B2152F75A00A341FD /* string.S */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = string.S; sourceTree = "<group>"; };
 		BB88F47C2152F75A00A341FD /* gadgets-generic.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "gadgets-generic.h"; sourceTree = "<group>"; };
-		BB88F47E2152F75A00A341FD /* bits.S */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = bits.S; sourceTree = "<group>"; };
-		BB88F47F2152F75A00A341FD /* control.S */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = control.S; sourceTree = "<group>"; };
-		BB88F4802152F75A00A341FD /* entry.S */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = entry.S; sourceTree = "<group>"; };
-		BB88F4812152F75A00A341FD /* gadgets.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gadgets.h; sourceTree = "<group>"; };
-		BB88F4822152F75A00A341FD /* math.S */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = math.S; sourceTree = "<group>"; };
-		BB88F4832152F75A00A341FD /* memory.S */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = memory.S; sourceTree = "<group>"; };
-		BB88F4842152F75A00A341FD /* misc.S */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = misc.S; sourceTree = "<group>"; };
-		BB88F4852152F75A00A341FD /* string.S */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = string.S; sourceTree = "<group>"; };
 		BB88F4862152F75A00A341FD /* gen.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = gen.c; sourceTree = "<group>"; };
 		BB88F4872152F75A00A341FD /* gen.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gen.h; sourceTree = "<group>"; };
 		BB88F4882152F75A00A341FD /* helpers.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = helpers.c; sourceTree = "<group>"; };
@@ -623,10 +606,9 @@
 			isa = PBXGroup;
 			children = (
 				BB88F4722152F75A00A341FD /* frame.h */,
-				BB88F4732152F75A00A341FD /* gadgets-aarch64 */,
 				BB88F47C2152F75A00A341FD /* gadgets-generic.h */,
-				BB88F47D2152F75A00A341FD /* gadgets-x86_64 */,
 				BB88F4862152F75A00A341FD /* gen.c */,
+				B17212612429F61700CCF3EC /* genPreProcessed.c */,
 				BB88F4872152F75A00A341FD /* gen.h */,
 				BB88F4882152F75A00A341FD /* helpers.c */,
 				BB88F4892152F75A00A341FD /* jit.c */,
@@ -634,37 +616,6 @@
 				BB88F48B2152F75A00A341FD /* offsets.c */,
 			);
 			path = jit;
-			sourceTree = "<group>";
-		};
-		BB88F4732152F75A00A341FD /* gadgets-aarch64 */ = {
-			isa = PBXGroup;
-			children = (
-				BB88F4742152F75A00A341FD /* bits.S */,
-				BB88F4752152F75A00A341FD /* control.S */,
-				BB88F4762152F75A00A341FD /* entry.S */,
-				BB88F4772152F75A00A341FD /* gadgets.h */,
-				BB101B5A2364EB66000A93BC /* math.h */,
-				BB88F4782152F75A00A341FD /* math.S */,
-				BB88F4792152F75A00A341FD /* memory.S */,
-				BB88F47A2152F75A00A341FD /* misc.S */,
-				BB88F47B2152F75A00A341FD /* string.S */,
-			);
-			path = "gadgets-aarch64";
-			sourceTree = "<group>";
-		};
-		BB88F47D2152F75A00A341FD /* gadgets-x86_64 */ = {
-			isa = PBXGroup;
-			children = (
-				BB88F47E2152F75A00A341FD /* bits.S */,
-				BB88F47F2152F75A00A341FD /* control.S */,
-				BB88F4802152F75A00A341FD /* entry.S */,
-				BB88F4812152F75A00A341FD /* gadgets.h */,
-				BB88F4822152F75A00A341FD /* math.S */,
-				BB88F4832152F75A00A341FD /* memory.S */,
-				BB88F4842152F75A00A341FD /* misc.S */,
-				BB88F4852152F75A00A341FD /* string.S */,
-			);
-			path = "gadgets-x86_64";
 			sourceTree = "<group>";
 		};
 		BB88F4912154760800A341FD /* FileProvider */ = {
@@ -991,7 +942,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				B1017E932427D997005B0A32 /* cpu-offsets.h in Sources */,
-				B1017E912427D855005B0A32 /* math.S in Sources */,
 				9A28E4EA219A8B670073D200 /* AboutAppearanceViewController.m in Sources */,
 				BB1D9D93234A8FE100F364E8 /* AboutNavigationController.m in Sources */,
 				BB235534235D488500139E00 /* LocationDevice.m in Sources */,
@@ -1238,6 +1188,7 @@
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				IPHONEOS_DEPLOYMENT_TARGET = 11.2;
+				MESON_BUILD_DIR = "$(CONFIGURATION_BUILD_DIR)/meson/";
 				MTL_ENABLE_DEBUG_INFO = YES;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = ish;
