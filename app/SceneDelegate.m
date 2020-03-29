@@ -7,6 +7,13 @@
 
 #import "SceneDelegate.h"
 #import "TerminalViewController.h"
+#import "AppGroup.h"
+
+#include "kernel/init.h"
+
+
+
+
 
 @interface SceneDelegate ()
 
@@ -19,6 +26,15 @@ static NSString *const TerminalUUID = @"TerminalUUID";
 @implementation SceneDelegate
 
 - (void)scene:(UIScene *)scene willConnectToSession:(UISceneSession *)session options:(UISceneConnectionOptions *)connectionOptions {
+    NSURL *container = ContainerURL();
+    NSURL *alpineRoot = [container URLByAppendingPathComponent:@"roots/alpine"];
+    alpineRoot = [alpineRoot URLByAppendingPathComponent:@"data"];
+    int err = mount_root(&fakefs, alpineRoot.fileSystemRepresentation);
+    if (err < 0) {
+        int r = 2;
+    }
+    
+    
     TerminalViewController *vc = (TerminalViewController *) self.window.rootViewController;
     vc.sceneSession = session;
     if (session.stateRestorationActivity == nil) {

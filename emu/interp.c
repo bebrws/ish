@@ -37,6 +37,37 @@
 #include "kernel/errno.h"
 
 
+
+
+
+#include <unistd.h>
+#if defined(__APPLE__) && defined(__aarch64__)
+#define __debugbreak() __asm__ __volatile__(            \
+"   mov    x0, %x0;    \n" /* pid                */ \
+"   mov    x1, #0x11;  \n" /* SIGSTOP            */ \
+"   mov    x16, #0x25; \n" /* syscall 37 = kill  */ \
+"   svc    #0x80       \n" /* software interrupt */ \
+"   mov    x0, x0      \n" /* nop                */ \
+::  "r"(getpid())                                   \
+:   "x0", "x1", "x16", "memory")
+#elif defined(__APPLE__) && defined(__arm__)
+#define __debugbreak() __asm__ __volatile__(            \
+"   mov    r0, %0;     \n" /* pid                */ \
+"   mov    r1, #0x11;  \n" /* SIGSTOP            */ \
+"   mov    r12, #0x25; \n" /* syscall 37 = kill  */ \
+"   svc    #0x80       \n" /* software interrupt */ \
+"   mov    r0, r0      \n" /* nop                */ \
+::  "r"(getpid())                                   \
+:   "r0", "r1", "r12", "memory")
+#elif defined(__APPLE__) && (defined(__i386__) || defined(__x86_64__))
+#define __debugbreak() __asm__ __volatile__("int $3; mov %eax, %eax")
+#endif
+
+#define DBADDR(addr) if (cpu->eip == addr) { __debugbreak(); /*__builtin_trap();*/ }
+
+
+
+
 #pragma GCC diagnostic ignored "-Wsign-compare"
 #pragma GCC diagnostic ignored "-Wtautological-constant-out-of-range-compare"
 
@@ -157,12 +188,19 @@ void fpu_restore32(struct cpu_state *cpu, struct fpu_state32 *state);
 extern int current_pid(void);
 
 
+//void printState() {
+// printk("CPU State\neax: %x ebx: %x ecx: %x edx: %x esi: %x edi: %x ebp: %x esp: %x eip: %x eflags: %x", cpu.eax, cpu.ebx, cpu.ecx, cpu.edx, cpu.esi, cpu.edi, cpu.ebp, cpu.esp, cpu.eip, cpu.eflags);
+//
+//}
+
 // Cleared out lines correlating source code with 
 //   # \d+ "[\/a-zA-Z0-9\.]*"
 
 // __attribute__((no_sanitize("address", "thread", "undefined", "leak", "memory")))
 int cpu_step32(struct cpu_state *cpu, struct tlb *tlb)
 {
+    
+    
     dword_t addr_offset = 0;
     dword_t saved_ip = cpu->eip;
     struct regptr modrm_regptr, modrm_base;
@@ -177,8 +215,13 @@ int cpu_step32(struct cpu_state *cpu, struct tlb *tlb)
     struct modrm modrm;
 
 restart:
-
+    
+    printk("\nCPU State\neax: %x ebx: %x ecx: %x edx: %x esi: %x edi: %x ebp: %x esp: %x eip: %x eflags: %x res: %x\n", cpu->eax, cpu->ebx, cpu->ecx, cpu->edx, cpu->esi, cpu->edi, cpu->ebp, cpu->esp, cpu->eip, cpu->eflags, cpu->res);
+    printk("CPU State Flags\ncf_bit %d pf %d af %d zf %d sf %d tf %d if_ %d df %d of_bit %d iopl %d pf_res %d sf_res %d af_ops %d\n", cpu->cf_bit, cpu->pf, cpu->af, cpu->zf, cpu->sf, cpu->tf, cpu->if_, cpu->df, cpu->of_bit, cpu->iopl, cpu->pf_res, cpu->sf_res, cpu->af_ops);
+    
     insn = ({ uint8_t val; if (!tlb_read(tlb, cpu->eip, &val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = cpu->eip; return 13; } val; });
+    printk("OpCode: %x\n", insn);
+    // printk("\nEIP is: %x\n", cpu->eip);
     cpu->eip += 8 / 8;
     __use(0, insn);
 
@@ -436,7 +479,7 @@ restart:
         case 0x31:
 
             __use(0);
-            imm = ({ uint32_t low, high; __asm__ volatile("rdtsc" : "=a" (high), "=d" (low)); ((uint64_t) high) << 32 | low; });
+                imm = ({ uint32_t low, high; __asm__ volatile("rdtsc" : "=a" (high), "=d" (low)); ((uint64_t) high) << 32 | low; });
             cpu->eax = imm & 0xffffffff;
             cpu->edx = imm >> 32;
             break;
@@ -3470,6 +3513,9 @@ restart:
         break;
     case 0x89:
         __use(0);
+            
+        DBADDR(0xf7fc341a + 1)
+            
         if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
         {
             cpu->segfault_addr = cpu->eip;
@@ -3496,8 +3542,9 @@ restart:
         };
         (*(uint8_t *)(((char *)cpu) + (modrm_regptr).reg8_id)) = (modrm.type == modrm_reg ? (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) : ({ uint8_t val; if (!tlb_read(tlb, addr, &val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
         break;
-    case 0x8b:
+    case 0x8b: // mov
         __use(0);
+            DBADDR(0xf7fc341a + 1)
         if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
         {
             cpu->segfault_addr = cpu->eip;
