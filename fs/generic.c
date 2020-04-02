@@ -40,7 +40,7 @@ struct fd *generic_openat(struct fd *at, const char *path_raw, int flags, int mo
     char path[MAX_PATH];
     int err = path_normalize(at, path_raw, path, N_SYMLINK_FOLLOW |
             (flags & O_CREAT_ ? N_PARENT_DIR_WRITE : 0));
-    printk("PN: Normalized path: %s", path);
+    //printk("PN: Normalized path: %s", path);
     if (err < 0)
         return ERR_PTR(err);
     struct mount *mount = find_mount_and_trim_path(path);

@@ -288,6 +288,7 @@ static void receive_signal(struct sighand *sighand, struct siginfo_ *info) {
     (void) user_write(sp, &frame, frame_size);
     // nothing we can do if that fails
     // TODO do something other than nothing, like printk maybe
+    // Is there where you could set eip to the siginfo->addr ?
 }
 
 void receive_signals() {
@@ -310,6 +311,7 @@ void receive_signals() {
     }
 
     struct sigqueue *sigqueue, *tmp;
+    // current->queue is a list of sigqueue s  and for each sigqueue we are accessing the queue member/property
     list_for_each_entry_safe(&current->queue, sigqueue, tmp, queue) {
         if (sigset_has(blocked, sigqueue->info.sig))
             continue;

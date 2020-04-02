@@ -69,11 +69,11 @@ static inline bool modrm_decode32(addr_t *ip, struct tlb *tlb, struct modrm *mod
     } else if (modrm->rm_opcode == rm_sib && mode != mode_reg) {
         byte_t sib_byte;
         READ(sib_byte);
-        printk("Read SIB Byte\n");
+        //printk("Read SIB Byte\n");
         modrm->base = RM(sib_byte);
         // wtf intel
         if (modrm->rm_opcode == rm_disp32) {
-            printk("Read SIB Byte and rm opcode is 32\n");
+            //printk("Read SIB Byte and rm opcode is 32\n");
             if (mode == mode_disp0) {
                 modrm->base = reg_none;
                 mode = mode_disp32;
@@ -84,12 +84,12 @@ static inline bool modrm_decode32(addr_t *ip, struct tlb *tlb, struct modrm *mod
         modrm->index = REG(sib_byte);
         modrm->shift = MOD(sib_byte);
         if (modrm->index != rm_none)
-            printk("Opcode type is MEM SI\n");
+            //printk("Opcode type is MEM SI\n");
             modrm->type = modrm_mem_si;
     }
 
     if (mode == mode_disp0) {
-        printk("Opcode offset is 0\n");
+        //printk("Opcode offset is 0\n");
         modrm->offset = 0;
     } else if (mode == mode_disp8) {
         int8_t offset;

@@ -43,7 +43,7 @@ restart:
     
 //    READINSN;
 
-    printk("\nip  before is %x\n", state->ip);
+    //printk("\nip  before is %x\n", state->ip);
 if (!tlb_read(tlb, state->ip, &insn, 1)) do {
         do {
             do {
@@ -68,14 +68,13 @@ if (!tlb_read(tlb, state->ip, &insn, 1)) do {
     struct pt_entry * pe = mem_pt(current->mem, PAGE(state->ip));
     struct mem *mem = current->mem;
     
-    printk("\nip after is %x\n", state->ip);
-    printk("INTERP: Just read op %x\n", insn);
-    printk("\n Page table for ip %x    address offset  %x \n", PAGE(state->ip), PGOFFSET(state->ip));
+    //printk("\nip after is %x\n", state->ip);
+    //printk("INTERP: Just read op %x\n", insn);
+    //printk("\n Page table for ip %x    address offset  %x \n", PAGE(state->ip), PGOFFSET(state->ip));
     if (pe && pe->data) {
         struct data *d = pe->data;
-        printk("\n memory offset:  %x   file offset: %x %x \n", pe->offset,  d->file_offset);
-        
-        printk("\n ip in group of pages   start %x   num pages  %x    dbgstr   %s  \n",  d->pgstart, d->pgnum, d->debugString);
+        //printk("\n memory offset:  %x   file offset: %x %x \n", pe->offset,  d->file_offset);
+        //printk("\n ip in group of pages   start %x   num pages  %x    dbgstr   %s  \n",  d->pgstart, d->pgnum, d->debugString);
     }
     
 

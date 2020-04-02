@@ -6,7 +6,7 @@
 
 static int __user_read_task(struct task *task, addr_t addr, void *buf, size_t count) {
     
-    printk("\n  mptr Reading from %x    page  %x    offset  %x \n", addr, PAGE(addr), PGOFFSET(addr));
+    //printk("\n  mptr Reading from %x    page  %x    offset  %x \n", addr, PAGE(addr), PGOFFSET(addr));
     
     char *cbuf = (char *) buf;
     addr_t p = addr;

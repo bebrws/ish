@@ -84,7 +84,7 @@ static int load_entry(struct prg_header ph, addr_t bias, struct fd *fd, const ch
     int flags = P_READ;
     if (ph.flags & PH_W) flags |= P_WRITE;
 
-    printk("\nTASK ELF:  Load Entry addr  %x  offset   %x  memsize   %x   fielsize   %x\n",  addr, offset, memsize, filesize);
+    //printk("\nTASK ELF:  Load Entry addr  %x  offset   %x  memsize   %x   fielsize   %x\n",  addr, offset, memsize, filesize);
     if ((err = fd->ops->mmap(fd, current->mem, PAGE(addr),
                     PAGE_ROUND_UP(filesize + PGOFFSET(addr)),
                     offset - PGOFFSET(addr), flags, MMAP_PRIVATE)) < 0)
@@ -105,7 +105,7 @@ static int load_entry(struct prg_header ph, addr_t bias, struct fd *fd, const ch
     mem_pt(current->mem, PAGE(addr))->brads = 1;
     mem_pt(current->mem, PAGE(addr))->data->brads = 1;
     
-    printk("\n TASK ELF:  -  Set first page mem file offset to  %x\n", offset - PGOFFSET(addr));
+    ////printk("\n TASK ELF:  -  Set first page mem file offset to  %x\n", offset - PGOFFSET(addr));
 
     if (memsize > filesize) {
         // put zeroes between addr + filesize and addr + memsize, call that bss
@@ -259,8 +259,8 @@ static int elf_exec(struct fd *fd, const char *file, struct exec_args argv, stru
 
     addr_t entry = bias + header.entry_point;
     
-    printk("\n TASK ELF:  - cur entry point %x\n", entry);
-    printk("\n TASK ELF:  - bias %x orig entry point %x\n", bias, header.entry_point);
+    //printk("\n TASK ELF:  - cur entry point %x\n", entry);
+    //printk("\n TASK ELF:  - bias %x orig entry point %x\n", bias, header.entry_point);
     addr_t interp_base = 0;
 
     if (interp_name) {
@@ -273,8 +273,8 @@ static int elf_exec(struct fd *fd, const char *file, struct exec_args argv, stru
                 goto beyond_hope;
         }
         entry = interp_base + interp_header.entry_point;
-        printk("\n TASK ELF:  Interp entry point %x\n", entry);
-        printk("\n TASK ELF:   - interp_base %x interp_header entry point%x\n", bias, interp_header.entry_point);
+        //printk("\n TASK ELF:  Interp entry point %x\n", entry);
+        //printk("\n TASK ELF:   - interp_base %x interp_header entry point%x\n", bias, interp_header.entry_point);
     }
 
     // map vdso
@@ -294,7 +294,7 @@ static int elf_exec(struct fd *fd, const char *file, struct exec_args argv, stru
     addr_t vdso_entry = current->mm->vdso + ((struct elf_header *) vdso_data)->entry_point;
 
     printk("\TASK ELF: VDSO mapped to page %x address point %x\n", vdso_page, vdso_page << 12);
-    printk("\nTASK ELF:   - vdso_page entry point%x\n", vdso_entry);
+    //printk("\nTASK ELF:   - vdso_page entry point%x\n", vdso_entry);
     
     // map 3 empty "vvar" pages to satisfy ptraceomatic
 #define NUM_VVAR 3
@@ -410,7 +410,7 @@ static int elf_exec(struct fd *fd, const char *file, struct exec_args argv, stru
 
     
     
-    printk("\n TASK ELF:  Configuring the cpu state, setting eip to %x \n", entry);
+    //printk("\n TASK ELF:  Configuring the cpu state, setting eip to %x \n", entry);
 //    printk("\n  - vdso_page entry point%x\n", vdso_entry);
     
     

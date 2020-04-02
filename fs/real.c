@@ -262,8 +262,8 @@ int realfs_mmap(struct fd *fd, struct mem *mem, page_t start, pages_t pages, off
     char *memory = mmap(NULL, (pages * PAGE_SIZE) + correction,
             mmap_prot, mmap_flags, fd->real_fd, real_offset);
     
-    printk("\n MMAP: Mapping memory ptr %x to page %x  real offset %x", memory, start, real_offset);
-    printk("\n MMAP: - firs few bytes %x %x %x %x %x %x\n", memory[0], memory[1], memory[2], memory[3], memory[4], memory[5]);
+    //printk("\n MMAP: Mapping memory ptr %x to page %x  real offset %x", memory, start, real_offset);
+    //printk("\n MMAP: - firs few bytes %x %x %x %x %x %x\n", memory[0], memory[1], memory[2], memory[3], memory[4], memory[5]);
     
     return pt_map(mem, start, pages, memory, correction, prot);
 }
