@@ -560,6 +560,36 @@ enum reg32 {
     reg_none = reg_count,
 };
 
+static inline const char * getRegisterString(enum reg32 reg)
+{
+    switch (reg) {
+        case reg_eax: return "eax";
+        case reg_ecx: return "ecx";
+        case reg_edx: return "edx";
+        case reg_ebx: return "ebx";
+        case reg_esp: return "esp";
+        case reg_ebp: return "ebp";
+        case reg_esi: return "esi";
+        case reg_edi: return "edi";
+        case reg_none: return "?";
+    }
+}
+
+static inline const char * get_register_string(enum reg32 reg)
+{
+    switch (reg) {
+        case reg_eax: return "eax";
+        case reg_ecx: return "ecx";
+        case reg_edx: return "edx";
+        case reg_ebx: return "ebx";
+        case reg_esp: return "esp";
+        case reg_ebp: return "ebp";
+        case reg_esi: return "esi";
+        case reg_edi: return "edi";
+        case reg_none: return "?";
+    }
+}
+
 static inline const char * reg32_name(enum reg32 reg)
 {
     switch (reg) {

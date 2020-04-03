@@ -51,6 +51,8 @@ static inline bool modrm_decode32(addr_t *ip, struct tlb *tlb, struct modrm *mod
 
     byte_t modrm_byte;
     READ(modrm_byte);
+    
+    //printk("MODRM %x ", modrm_byte);
 
     enum {
         mode_disp0,

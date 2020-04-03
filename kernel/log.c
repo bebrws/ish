@@ -29,6 +29,9 @@ static lock_t log_lock = LOCK_INITIALIZER;
 #define SYSLOG_ACTION_SIZE_UNREAD_ 9
 #define SYSLOG_ACTION_SIZE_BUFFER_ 10
 
+
+
+
 static int syslog_read(addr_t buf_addr, int_t len, int flags) {
     if (len < 0)
         return _EINVAL;
@@ -123,10 +126,12 @@ void vprintk(const char *msg, va_list args) {
     unlock(&log_lock);
     memmove(buf, b, strlen(b) + 1);
 }
-void printk(const char *msg, ...) {
+
+void printk2(const char *msg, ...) {
     va_list args;
     va_start(args, msg);
     vprintk(msg, args);
+    //fprintf(stderr, msg, args);
     va_end(args);
 }
 

@@ -3,7 +3,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void printk(const char *msg, ...);
+#define printk(fmt, ...) fprintf(stderr, fmt, ##__VA_ARGS__)
+
+
+void printk2(const char *msg, ...);
 void vprintk(const char *msg, va_list args);
 
 // debug output utilities
