@@ -215,13 +215,15 @@ int cpu_step32(struct cpu_state *cpu, struct tlb *tlb)
     struct modrm modrm;
 
 restart:
-    
+#ifdef BDEBUG
     printk("\nP:%d eax: %x ebx: %x ecx: %x edx: %x esi: %x edi: %x ebp: %x esp: %x eip: %x eflags: %x res: %x\n", current->pid,  cpu->eax, cpu->ebx, cpu->ecx, cpu->edx, cpu->esi, cpu->edi, cpu->ebp, cpu->esp, cpu->eip, cpu->eflags, cpu->res);
     printk("\nP:%d cf_bit %d pf %d af %d zf %d sf %d tf %d if_ %d df %d of_bit %d iopl %d pf_res %d sf_res %d af_ops %d\n", current->pid, cpu->cf_bit, cpu->pf, cpu->af, cpu->zf, cpu->sf, cpu->tf, cpu->if_, cpu->df, cpu->of_bit, cpu->iopl, cpu->pf_res, cpu->sf_res, cpu->af_ops);
-    
+#endif
     insn = ({ uint8_t val; if (!tlb_read(tlb, cpu->eip, &val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = cpu->eip; return 13; } val; });
+#ifdef BDEBUG
     printk("P:%d EIP: %x Op: %x\n", current->pid, cpu->eip, insn);
     // printk("\nEIP is: %x\n", cpu->eip);
+#endif
     cpu->eip += 8 / 8;
     __use(0, insn);
 
@@ -428,1323 +430,1323 @@ restart:
         cpu->zf_res = cpu->sf_res = cpu->pf_res = 1;
         break;
 
-    case 0x0f:
-
-        insn = ({ uint8_t val; if (!tlb_read(tlb, cpu->eip, &val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = cpu->eip; return 13; } val; });
-        cpu->eip += 8 / 8;
-        __use(0, insn);
-        switch (insn)
-        {
-        case 0x18 ... 0x1f:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            break;
-
-        case 0x28:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            {
-                cpu->eip = saved_ip;
-                return 6;
-            };
-            break;
-        case 0x29:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            {
-                cpu->eip = saved_ip;
-                return 6;
-            };
-            break;
-
-        case 0x2e:
-
-            break;
-
-        case 0x31:
-
-            __use(0);
-                imm = ({ uint32_t low, high; __asm__ volatile("rdtsc" : "=a" (high), "=d" (low)); ((uint64_t) high) << 32 | low; });
-            cpu->eax = imm & 0xffffffff;
-            cpu->edx = imm >> 32;
-            break;
-
-        case 0x40:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            if ((cpu->of))
-                (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
-            break;
-        case 0x41:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            if (!(cpu->of))
-                (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
-            break;
-        case 0x42:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            if ((cpu->cf))
-                (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
-            break;
-        case 0x43:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            if (!(cpu->cf))
-                (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
-            break;
-        case 0x44:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            if ((cpu->zf_res ? cpu->res == 0 : cpu->zf))
-                (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
-            break;
-        case 0x45:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            if (!(cpu->zf_res ? cpu->res == 0 : cpu->zf))
-                (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
-            break;
-        case 0x46:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            if (((cpu->cf) | (cpu->zf_res ? cpu->res == 0 : cpu->zf)))
-                (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
-            break;
-        case 0x47:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            if (!((cpu->cf) | (cpu->zf_res ? cpu->res == 0 : cpu->zf)))
-                (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
-            break;
-        case 0x48:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            if ((cpu->sf_res ? (int32_t)cpu->res < 0 : cpu->sf))
-                (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
-            break;
-        case 0x49:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            if (!(cpu->sf_res ? (int32_t)cpu->res < 0 : cpu->sf))
-                (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
-            break;
-        case 0x4a:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            if ((cpu->pf_res ? !__builtin_parity(cpu->res & 0xff) : cpu->pf))
-                (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
-            break;
-        case 0x4b:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            if (!(cpu->pf_res ? !__builtin_parity(cpu->res & 0xff) : cpu->pf))
-                (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
-            break;
-        case 0x4c:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            if (((cpu->sf_res ? (int32_t)cpu->res < 0 : cpu->sf) ^ (cpu->of)))
-                (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
-            break;
-        case 0x4d:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            if (!((cpu->sf_res ? (int32_t)cpu->res < 0 : cpu->sf) ^ (cpu->of)))
-                (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
-            break;
-        case 0x4e:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            if ((((cpu->sf_res ? (int32_t)cpu->res < 0 : cpu->sf) ^ (cpu->of)) | (cpu->zf_res ? cpu->res == 0 : cpu->zf)))
-                (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
-            break;
-        case 0x4f:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            if (!(((cpu->sf_res ? (int32_t)cpu->res < 0 : cpu->sf) ^ (cpu->of)) | (cpu->zf_res ? cpu->res == 0 : cpu->zf)))
-                (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
-            break;
-
-        case 0x57:
-            __use(0);
-
-            break;
-
-        case 0x6e:
-            __use(0);
-
-            break;
-
-        case 0x6f:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            {
-                cpu->eip = saved_ip;
-                return 6;
-            };
-            break;
-
-        case 0x73:
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            switch (modrm.opcode)
-            {
-            case 0x02:
-                __use(0);
-
-            default:
-            {
-                cpu->eip = saved_ip;
-                return 6;
-            };
-            }
-            break;
-
-        case 0x77:
-            __use(0);
-            break;
-
-        case 0x7e:
-            __use(0);
-
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            {
-                cpu->eip = saved_ip;
-                return 6;
-            };
-            break;
-
-        case 0x7f:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            {
-                cpu->eip = saved_ip;
-                return 6;
-            };
-            break;
-
-        case 0x80:
-            __use(0);
-            imm = ({ uint32_t val; if (!tlb_read(tlb, cpu->eip, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = cpu->eip; return 13; } val; });
-            cpu->eip += 32 / 8;
-            __use(0, (long long)imm);
-            if ((cpu->of))
-            {
-                cpu->eip += ((uint32_t)imm);
-                if (32 == 16)
-                    cpu->eip &= 0xffff;
-            };
-            break;
-        case 0x81:
-            __use(0);
-            imm = ({ uint32_t val; if (!tlb_read(tlb, cpu->eip, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = cpu->eip; return 13; } val; });
-            cpu->eip += 32 / 8;
-            __use(0, (long long)imm);
-            if (!(cpu->of))
-            {
-                cpu->eip += ((uint32_t)imm);
-                if (32 == 16)
-                    cpu->eip &= 0xffff;
-            };
-            break;
-        case 0x82:
-            __use(0);
-            imm = ({ uint32_t val; if (!tlb_read(tlb, cpu->eip, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = cpu->eip; return 13; } val; });
-            cpu->eip += 32 / 8;
-            __use(0, (long long)imm);
-            if ((cpu->cf))
-            {
-                cpu->eip += ((uint32_t)imm);
-                if (32 == 16)
-                    cpu->eip &= 0xffff;
-            };
-            break;
-        case 0x83:
-            __use(0);
-            imm = ({ uint32_t val; if (!tlb_read(tlb, cpu->eip, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = cpu->eip; return 13; } val; });
-            cpu->eip += 32 / 8;
-            __use(0, (long long)imm);
-            if (!(cpu->cf))
-            {
-                cpu->eip += ((uint32_t)imm);
-                if (32 == 16)
-                    cpu->eip &= 0xffff;
-            };
-            break;
-        case 0x84:
-            __use(0);
-            imm = ({ uint32_t val; if (!tlb_read(tlb, cpu->eip, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = cpu->eip; return 13; } val; });
-            cpu->eip += 32 / 8;
-            __use(0, (long long)imm);
-            if ((cpu->zf_res ? cpu->res == 0 : cpu->zf))
-            {
-                cpu->eip += ((uint32_t)imm);
-                if (32 == 16)
-                    cpu->eip &= 0xffff;
-            };
-            break;
-        case 0x85:
-            __use(0);
-            imm = ({ uint32_t val; if (!tlb_read(tlb, cpu->eip, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = cpu->eip; return 13; } val; });
-            cpu->eip += 32 / 8;
-            __use(0, (long long)imm);
-            if (!(cpu->zf_res ? cpu->res == 0 : cpu->zf))
-            {
-                cpu->eip += ((uint32_t)imm);
-                if (32 == 16)
-                    cpu->eip &= 0xffff;
-            };
-            break;
-        case 0x86:
-            __use(0);
-            imm = ({ uint32_t val; if (!tlb_read(tlb, cpu->eip, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = cpu->eip; return 13; } val; });
-            cpu->eip += 32 / 8;
-            __use(0, (long long)imm);
-            if (((cpu->cf) | (cpu->zf_res ? cpu->res == 0 : cpu->zf)))
-            {
-                cpu->eip += ((uint32_t)imm);
-                if (32 == 16)
-                    cpu->eip &= 0xffff;
-            };
-            break;
-        case 0x87:
-            __use(0);
-            imm = ({ uint32_t val; if (!tlb_read(tlb, cpu->eip, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = cpu->eip; return 13; } val; });
-            cpu->eip += 32 / 8;
-            __use(0, (long long)imm);
-            if (!((cpu->cf) | (cpu->zf_res ? cpu->res == 0 : cpu->zf)))
-            {
-                cpu->eip += ((uint32_t)imm);
-                if (32 == 16)
-                    cpu->eip &= 0xffff;
-            };
-            break;
-        case 0x88:
-            __use(0);
-            imm = ({ uint32_t val; if (!tlb_read(tlb, cpu->eip, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = cpu->eip; return 13; } val; });
-            cpu->eip += 32 / 8;
-            __use(0, (long long)imm);
-            if ((cpu->sf_res ? (int32_t)cpu->res < 0 : cpu->sf))
-            {
-                cpu->eip += ((uint32_t)imm);
-                if (32 == 16)
-                    cpu->eip &= 0xffff;
-            };
-            break;
-        case 0x89:
-            __use(0);
-            imm = ({ uint32_t val; if (!tlb_read(tlb, cpu->eip, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = cpu->eip; return 13; } val; });
-            cpu->eip += 32 / 8;
-            __use(0, (long long)imm);
-            if (!(cpu->sf_res ? (int32_t)cpu->res < 0 : cpu->sf))
-            {
-                cpu->eip += ((uint32_t)imm);
-                if (32 == 16)
-                    cpu->eip &= 0xffff;
-            };
-            break;
-        case 0x8a:
-            __use(0);
-            imm = ({ uint32_t val; if (!tlb_read(tlb, cpu->eip, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = cpu->eip; return 13; } val; });
-            cpu->eip += 32 / 8;
-            __use(0, (long long)imm);
-            if ((cpu->pf_res ? !__builtin_parity(cpu->res & 0xff) : cpu->pf))
-            {
-                cpu->eip += ((uint32_t)imm);
-                if (32 == 16)
-                    cpu->eip &= 0xffff;
-            };
-            break;
-        case 0x8b:
-            __use(0);
-            imm = ({ uint32_t val; if (!tlb_read(tlb, cpu->eip, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = cpu->eip; return 13; } val; });
-            cpu->eip += 32 / 8;
-            __use(0, (long long)imm);
-            if (!(cpu->pf_res ? !__builtin_parity(cpu->res & 0xff) : cpu->pf))
-            {
-                cpu->eip += ((uint32_t)imm);
-                if (32 == 16)
-                    cpu->eip &= 0xffff;
-            };
-            break;
-        case 0x8c:
-            __use(0);
-            imm = ({ uint32_t val; if (!tlb_read(tlb, cpu->eip, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = cpu->eip; return 13; } val; });
-            cpu->eip += 32 / 8;
-            __use(0, (long long)imm);
-            if (((cpu->sf_res ? (int32_t)cpu->res < 0 : cpu->sf) ^ (cpu->of)))
-            {
-                cpu->eip += ((uint32_t)imm);
-                if (32 == 16)
-                    cpu->eip &= 0xffff;
-            };
-            break;
-        case 0x8d:
-            __use(0);
-            imm = ({ uint32_t val; if (!tlb_read(tlb, cpu->eip, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = cpu->eip; return 13; } val; });
-            cpu->eip += 32 / 8;
-            __use(0, (long long)imm);
-            if (!((cpu->sf_res ? (int32_t)cpu->res < 0 : cpu->sf) ^ (cpu->of)))
-            {
-                cpu->eip += ((uint32_t)imm);
-                if (32 == 16)
-                    cpu->eip &= 0xffff;
-            };
-            break;
-        case 0x8e:
-            __use(0);
-            imm = ({ uint32_t val; if (!tlb_read(tlb, cpu->eip, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = cpu->eip; return 13; } val; });
-            cpu->eip += 32 / 8;
-            __use(0, (long long)imm);
-            if ((((cpu->sf_res ? (int32_t)cpu->res < 0 : cpu->sf) ^ (cpu->of)) | (cpu->zf_res ? cpu->res == 0 : cpu->zf)))
-            {
-                cpu->eip += ((uint32_t)imm);
-                if (32 == 16)
-                    cpu->eip &= 0xffff;
-            };
-            break;
-        case 0x8f:
-            __use(0);
-            imm = ({ uint32_t val; if (!tlb_read(tlb, cpu->eip, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = cpu->eip; return 13; } val; });
-            cpu->eip += 32 / 8;
-            __use(0, (long long)imm);
-            if (!(((cpu->sf_res ? (int32_t)cpu->res < 0 : cpu->sf) ^ (cpu->of)) | (cpu->zf_res ? cpu->res == 0 : cpu->zf)))
-            {
-                cpu->eip += ((uint32_t)imm);
-                if (32 == 16)
-                    cpu->eip &= 0xffff;
-            };
-            break;
-
-        case 0x90:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            if (modrm.type == modrm_reg)
-            {
-                (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) = ((cpu->of) ? 1 : 0);
-            }
-            else
-            {
-                ({ uint8_t _val = ((cpu->of) ? 1 : 0); if (!tlb_write(tlb, addr, &_val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
-            }
-            (void)0;
-            break;
-        case 0x91:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            if (modrm.type == modrm_reg)
-            {
-                (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) = ((cpu->of) ? 0 : 1);
-            }
-            else
-            {
-                ({ uint8_t _val = ((cpu->of) ? 0 : 1); if (!tlb_write(tlb, addr, &_val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
-            }
-            (void)0;
-            break;
-        case 0x92:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            if (modrm.type == modrm_reg)
-            {
-                (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) = ((cpu->cf) ? 1 : 0);
-            }
-            else
-            {
-                ({ uint8_t _val = ((cpu->cf) ? 1 : 0); if (!tlb_write(tlb, addr, &_val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
-            }
-            (void)0;
-            break;
-        case 0x93:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            if (modrm.type == modrm_reg)
-            {
-                (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) = ((cpu->cf) ? 0 : 1);
-            }
-            else
-            {
-                ({ uint8_t _val = ((cpu->cf) ? 0 : 1); if (!tlb_write(tlb, addr, &_val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
-            }
-            (void)0;
-            break;
-        case 0x94:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            if (modrm.type == modrm_reg)
-            {
-                (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) = ((cpu->zf_res ? cpu->res == 0 : cpu->zf) ? 1 : 0);
-            }
-            else
-            {
-                ({ uint8_t _val = ((cpu->zf_res ? cpu->res == 0 : cpu->zf) ? 1 : 0); if (!tlb_write(tlb, addr, &_val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
-            }
-            (void)0;
-            break;
-        case 0x95:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            if (modrm.type == modrm_reg)
-            {
-                (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) = ((cpu->zf_res ? cpu->res == 0 : cpu->zf) ? 0 : 1);
-            }
-            else
-            {
-                ({ uint8_t _val = ((cpu->zf_res ? cpu->res == 0 : cpu->zf) ? 0 : 1); if (!tlb_write(tlb, addr, &_val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
-            }
-            (void)0;
-            break;
-        case 0x96:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            if (modrm.type == modrm_reg)
-            {
-                (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) = (((cpu->cf) | (cpu->zf_res ? cpu->res == 0 : cpu->zf)) ? 1 : 0);
-            }
-            else
-            {
-                ({ uint8_t _val = (((cpu->cf) | (cpu->zf_res ? cpu->res == 0 : cpu->zf)) ? 1 : 0); if (!tlb_write(tlb, addr, &_val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
-            }
-            (void)0;
-            break;
-        case 0x97:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            if (modrm.type == modrm_reg)
-            {
-                (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) = (((cpu->cf) | (cpu->zf_res ? cpu->res == 0 : cpu->zf)) ? 0 : 1);
-            }
-            else
-            {
-                ({ uint8_t _val = (((cpu->cf) | (cpu->zf_res ? cpu->res == 0 : cpu->zf)) ? 0 : 1); if (!tlb_write(tlb, addr, &_val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
-            }
-            (void)0;
-            break;
-        case 0x98:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            if (modrm.type == modrm_reg)
-            {
-                (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) = ((cpu->sf_res ? (int32_t)cpu->res < 0 : cpu->sf) ? 1 : 0);
-            }
-            else
-            {
-                ({ uint8_t _val = ((cpu->sf_res ? (int32_t) cpu->res < 0 : cpu->sf) ? 1 : 0); if (!tlb_write(tlb, addr, &_val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
-            }
-            (void)0;
-            break;
-        case 0x99:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            if (modrm.type == modrm_reg)
-            {
-                (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) = ((cpu->sf_res ? (int32_t)cpu->res < 0 : cpu->sf) ? 0 : 1);
-            }
-            else
-            {
-                ({ uint8_t _val = ((cpu->sf_res ? (int32_t) cpu->res < 0 : cpu->sf) ? 0 : 1); if (!tlb_write(tlb, addr, &_val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
-            }
-            (void)0;
-            break;
-        case 0x9a:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            if (modrm.type == modrm_reg)
-            {
-                (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) = ((cpu->pf_res ? !__builtin_parity(cpu->res & 0xff) : cpu->pf) ? 1 : 0);
-            }
-            else
-            {
-                ({ uint8_t _val = ((cpu->pf_res ? !__builtin_parity(cpu->res & 0xff) : cpu->pf) ? 1 : 0); if (!tlb_write(tlb, addr, &_val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
-            }
-            (void)0;
-            break;
-        case 0x9b:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            if (modrm.type == modrm_reg)
-            {
-                (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) = ((cpu->pf_res ? !__builtin_parity(cpu->res & 0xff) : cpu->pf) ? 0 : 1);
-            }
-            else
-            {
-                ({ uint8_t _val = ((cpu->pf_res ? !__builtin_parity(cpu->res & 0xff) : cpu->pf) ? 0 : 1); if (!tlb_write(tlb, addr, &_val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
-            }
-            (void)0;
-            break;
-        case 0x9c:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            if (modrm.type == modrm_reg)
-            {
-                (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) = (((cpu->sf_res ? (int32_t)cpu->res < 0 : cpu->sf) ^ (cpu->of)) ? 1 : 0);
-            }
-            else
-            {
-                ({ uint8_t _val = (((cpu->sf_res ? (int32_t) cpu->res < 0 : cpu->sf) ^ (cpu->of)) ? 1 : 0); if (!tlb_write(tlb, addr, &_val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
-            }
-            (void)0;
-            break;
-        case 0x9d:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            if (modrm.type == modrm_reg)
-            {
-                (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) = (((cpu->sf_res ? (int32_t)cpu->res < 0 : cpu->sf) ^ (cpu->of)) ? 0 : 1);
-            }
-            else
-            {
-                ({ uint8_t _val = (((cpu->sf_res ? (int32_t) cpu->res < 0 : cpu->sf) ^ (cpu->of)) ? 0 : 1); if (!tlb_write(tlb, addr, &_val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
-            }
-            (void)0;
-            break;
-        case 0x9e:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            if (modrm.type == modrm_reg)
-            {
-                (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) = ((((cpu->sf_res ? (int32_t)cpu->res < 0 : cpu->sf) ^ (cpu->of)) | (cpu->zf_res ? cpu->res == 0 : cpu->zf)) ? 1 : 0);
-            }
-            else
-            {
-                ({ uint8_t _val = ((((cpu->sf_res ? (int32_t) cpu->res < 0 : cpu->sf) ^ (cpu->of)) | (cpu->zf_res ? cpu->res == 0 : cpu->zf)) ? 1 : 0); if (!tlb_write(tlb, addr, &_val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
-            }
-            (void)0;
-            break;
-        case 0x9f:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            if (modrm.type == modrm_reg)
-            {
-                (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) = ((((cpu->sf_res ? (int32_t)cpu->res < 0 : cpu->sf) ^ (cpu->of)) | (cpu->zf_res ? cpu->res == 0 : cpu->zf)) ? 0 : 1);
-            }
-            else
-            {
-                ({ uint8_t _val = ((((cpu->sf_res ? (int32_t) cpu->res < 0 : cpu->sf) ^ (cpu->of)) | (cpu->zf_res ? cpu->res == 0 : cpu->zf)) ? 0 : 1); if (!tlb_write(tlb, addr, &_val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
-            }
-            (void)0;
-            break;
-
-        case 0xa2:
-            __use(0);
-            do_cpuid(&cpu->eax, &cpu->ebx, &cpu->ecx, &cpu->edx);
-            break;
-
-        case 0xa3:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            cpu->cf = (((modrm.type != modrm_reg) ? ({ uint32_t val; if (!tlb_read(tlb, addr + (*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id)) / 32 * (32/8), &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr + (*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id)) / 32 * (32/8); return 13; } val; }) : (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))) & (1 << ((*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) % 32))) ? 1 : 0;
-            ;
-            break;
-
-        case 0xa4:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            imm = ({ uint8_t val; if (!tlb_read(tlb, cpu->eip, &val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = cpu->eip; return 13; } val; });
-            cpu->eip += 8 / 8;
-            __use(0, (long long)imm);
-            imm = (int8_t)(uint8_t)imm;
-            if (((uint8_t)imm) % 32 != 0)
-            {
-                int cnt = ((uint8_t)imm) % 32;
-                cpu->res = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) << cnt | (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) >> (32 - cnt);
-                if (modrm.type == modrm_reg)
-                {
-                    (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) = cpu->res;
-                }
-                else
-                {
-                    ({ uint32_t _val = cpu->res; if (!tlb_write(tlb, addr, &_val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
-                }
-                (void)0;
-                cpu->zf_res = cpu->sf_res = cpu->pf_res = 1;
-            };
-            break;
-        case 0xa5:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            if (((uint8_t)cpu->ecx) % 32 != 0)
-            {
-                int cnt = ((uint8_t)cpu->ecx) % 32;
-                cpu->res = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) << cnt | (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) >> (32 - cnt);
-                if (modrm.type == modrm_reg)
-                {
-                    (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) = cpu->res;
-                }
-                else
-                {
-                    ({ uint32_t _val = cpu->res; if (!tlb_write(tlb, addr, &_val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
-                }
-                (void)0;
-                cpu->zf_res = cpu->sf_res = cpu->pf_res = 1;
-            };
-            break;
-
-        case 0xab:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            cpu->cf = (((modrm.type != modrm_reg) ? ({ uint32_t val; if (!tlb_read(tlb, addr + (*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id)) / 32 * (32/8), &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr + (*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id)) / 32 * (32/8); return 13; } val; }) : (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))) & (1 << ((*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) % 32))) ? 1 : 0;
-            ;
-            if (modrm.type == modrm_reg)
-            {
-                (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) | (1 << ((*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) % 32));
-            }
-            else
-            {
-                ({ uint32_t _val = (modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) | (1 << ((*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id)) % 32)); if (!tlb_write(tlb, addr, &_val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
-            }
-            (void)0;
-            break;
-
-        case 0xac:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            imm = ({ uint8_t val; if (!tlb_read(tlb, cpu->eip, &val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = cpu->eip; return 13; } val; });
-            cpu->eip += 8 / 8;
-            __use(0, (long long)imm);
-            imm = (int8_t)(uint8_t)imm;
-            if (((uint8_t)imm) % 32 != 0)
-            {
-                int cnt = ((uint8_t)imm) % 32;
-                cpu->cf = ((modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) >> (cnt - 1)) & 1;
-                cpu->res = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) >> cnt | (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) << (32 - cnt);
-                if (modrm.type == modrm_reg)
-                {
-                    (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) = cpu->res;
-                }
-                else
-                {
-                    ({ uint32_t _val = cpu->res; if (!tlb_write(tlb, addr, &_val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
-                }
-                (void)0;
-                cpu->zf_res = cpu->sf_res = cpu->pf_res = 1;
-            };
-            break;
-        case 0xad:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            if (((uint8_t)cpu->ecx) % 32 != 0)
-            {
-                int cnt = ((uint8_t)cpu->ecx) % 32;
-                cpu->cf = ((modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) >> (cnt - 1)) & 1;
-                cpu->res = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) >> cnt | (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) << (32 - cnt);
-                if (modrm.type == modrm_reg)
-                {
-                    (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) = cpu->res;
-                }
-                else
-                {
-                    ({ uint32_t _val = cpu->res; if (!tlb_write(tlb, addr, &_val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
-                }
-                (void)0;
-                cpu->zf_res = cpu->sf_res = cpu->pf_res = 1;
-            };
-            break;
-
-        case 0xaf:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            cpu->cf = cpu->of = ({ int ov = __builtin_mul_overflow((int32_t) ((*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id))), (int32_t) ((modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))), (int32_t *) &cpu->res); cpu->res = (int32_t) cpu->res; ov; });
-            (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) = cpu->res;
-            cpu->zf_res = cpu->sf_res = cpu->pf_res = 1;
-            break;
-
-        case 0xb0:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            if (modrm.type == modrm_reg)
-            {
-                cpu->eip = saved_ip;
-                return 6;
-            };
-            cpu->op1 = ((uint8_t)cpu->eax);
-            cpu->op2 = (modrm.type == modrm_reg ? (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) : ({ uint8_t val; if (!tlb_read(tlb, addr, &val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
-            cpu->af_ops = 1;
-            cpu->cf = ({ int ov = __builtin_sub_overflow((uint8_t) ((modrm.type == modrm_reg ? (*(uint8_t *) (((char *) cpu) + (modrm_base).reg8_id)) : ({ uint8_t val; if (!tlb_read(tlb, addr, &val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))), (uint8_t) (((uint8_t) cpu->eax)), (uint8_t *) &cpu->res); cpu->res = (int8_t) cpu->res; ov; });
-            cpu->of = ({ int ov = __builtin_sub_overflow((int8_t) ((modrm.type == modrm_reg ? (*(uint8_t *) (((char *) cpu) + (modrm_base).reg8_id)) : ({ uint8_t val; if (!tlb_read(tlb, addr, &val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))), (int8_t) (((uint8_t) cpu->eax)), (int8_t *) &cpu->res); cpu->res = (int8_t) cpu->res; ov; });
-            cpu->zf_res = cpu->sf_res = cpu->pf_res = 1;
-            if ((cpu->zf_res ? cpu->res == 0 : cpu->zf))
-            {
-                if (modrm.type == modrm_reg)
-                {
-                    (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) = (*(uint8_t *)(((char *)cpu) + (modrm_regptr).reg8_id));
-                }
-                else
-                {
-                    ({ uint8_t _val = (*(uint8_t *) (((char *) cpu) + (modrm_regptr).reg8_id)); if (!tlb_write(tlb, addr, &_val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
-                }
-                (void)0;
-            }
-            else
-                *(uint8_t *)&cpu->eax = (modrm.type == modrm_reg ? (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) : ({ uint8_t val; if (!tlb_read(tlb, addr, &val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
-            break;
-        case 0xb1:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            if (modrm.type == modrm_reg)
-            {
-                cpu->eip = saved_ip;
-                return 6;
-            };
-            cpu->op1 = ((uint32_t)cpu->eax);
-            cpu->op2 = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
-            cpu->af_ops = 1;
-            cpu->cf = ({ int ov = __builtin_sub_overflow((uint32_t) ((modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))), (uint32_t) (((uint32_t) cpu->eax)), (uint32_t *) &cpu->res); cpu->res = (int32_t) cpu->res; ov; });
-            cpu->of = ({ int ov = __builtin_sub_overflow((int32_t) ((modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))), (int32_t) (((uint32_t) cpu->eax)), (int32_t *) &cpu->res); cpu->res = (int32_t) cpu->res; ov; });
-            cpu->zf_res = cpu->sf_res = cpu->pf_res = 1;
-            if ((cpu->zf_res ? cpu->res == 0 : cpu->zf))
-            {
-                if (modrm.type == modrm_reg)
-                {
-                    (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) = (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id));
-                }
-                else
-                {
-                    ({ uint32_t _val = (*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id)); if (!tlb_write(tlb, addr, &_val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
-                }
-                (void)0;
-            }
-            else
-                *(uint32_t *)&cpu->eax = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
-            break;
-
-        case 0xb3:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            cpu->cf = (((modrm.type != modrm_reg) ? ({ uint32_t val; if (!tlb_read(tlb, addr + (*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id)) / 32 * (32/8), &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr + (*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id)) / 32 * (32/8); return 13; } val; }) : (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))) & (1 << ((*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) % 32))) ? 1 : 0;
-            ;
-            if (modrm.type == modrm_reg)
-            {
-                (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) & ~(1 << ((*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) % 32));
-            }
-            else
-            {
-                ({ uint32_t _val = (modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) & ~(1 << ((*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id)) % 32)); if (!tlb_write(tlb, addr, &_val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
-            }
-            (void)0;
-            break;
-
-        case 0xb6:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) = (modrm.type == modrm_reg ? (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) : ({ uint8_t val; if (!tlb_read(tlb, addr, &val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
-            break;
-        case 0xb7:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) = (modrm.type == modrm_reg ? (*(uint16_t *)(((char *)cpu) + (modrm_base).reg16_id)) : ({ uint16_t val; if (!tlb_read(tlb, addr, &val, 16/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
-            break;
-
-        case 0xba:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            imm = ({ uint8_t val; if (!tlb_read(tlb, cpu->eip, &val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = cpu->eip; return 13; } val; });
-            cpu->eip += 8 / 8;
-            __use(0, (long long)imm);
-            imm = (int8_t)(uint8_t)imm;
-            switch (modrm.opcode)
-            {
-            case 4:
-                __use(0);
-                cpu->cf = (((modrm.type != modrm_reg) ? ({ uint32_t val; if (!tlb_read(tlb, addr + ((uint32_t) imm) / 32 * (32/8), &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr + ((uint32_t) imm) / 32 * (32/8); return 13; } val; }) : (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))) & (1 << (((uint32_t)imm) % 32))) ? 1 : 0;
-                ;
-                break;
-            case 5:
-                __use(0);
-                cpu->cf = (((modrm.type != modrm_reg) ? ({ uint32_t val; if (!tlb_read(tlb, addr + ((uint32_t) imm) / 32 * (32/8), &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr + ((uint32_t) imm) / 32 * (32/8); return 13; } val; }) : (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))) & (1 << (((uint32_t)imm) % 32))) ? 1 : 0;
-                ;
-                if (modrm.type == modrm_reg)
-                {
-                    (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) | (1 << (((uint32_t)imm) % 32));
-                }
-                else
-                {
-                    ({ uint32_t _val = (modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) | (1 << (((uint32_t) imm) % 32)); if (!tlb_write(tlb, addr, &_val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
-                }
-                (void)0;
-                break;
-            case 6:
-                __use(0);
-                cpu->cf = (((modrm.type != modrm_reg) ? ({ uint32_t val; if (!tlb_read(tlb, addr + ((uint32_t) imm) / 32 * (32/8), &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr + ((uint32_t) imm) / 32 * (32/8); return 13; } val; }) : (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))) & (1 << (((uint32_t)imm) % 32))) ? 1 : 0;
-                ;
-                if (modrm.type == modrm_reg)
-                {
-                    (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) & ~(1 << (((uint32_t)imm) % 32));
-                }
-                else
-                {
-                    ({ uint32_t _val = (modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) & ~(1 << (((uint32_t) imm) % 32)); if (!tlb_write(tlb, addr, &_val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
-                }
-                (void)0;
-                break;
-            case 7:
-                __use(0);
-                cpu->cf = (((modrm.type != modrm_reg) ? ({ uint32_t val; if (!tlb_read(tlb, addr + ((uint32_t) imm) / 32 * (32/8), &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr + ((uint32_t) imm) / 32 * (32/8); return 13; } val; }) : (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))) & (1 << (((uint32_t)imm) % 32))) ? 1 : 0;
-                ;
-                if (modrm.type == modrm_reg)
-                {
-                    (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) ^ (1 << (((uint32_t)imm) % 32));
-                }
-                else
-                {
-                    ({ uint32_t _val = (modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) ^ (1 << (((uint32_t) imm) % 32)); if (!tlb_write(tlb, addr, &_val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
-                }
-                (void)0;
-                break;
-            default:
-            {
-                cpu->eip = saved_ip;
-                return 6;
-            };
-            };
-            break;
-
-        case 0xbb:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            cpu->cf = (((modrm.type != modrm_reg) ? ({ uint32_t val; if (!tlb_read(tlb, addr + (*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id)) / 32 * (32/8), &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr + (*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id)) / 32 * (32/8); return 13; } val; }) : (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))) & (1 << ((*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) % 32))) ? 1 : 0;
-            ;
-            if (modrm.type == modrm_reg)
-            {
-                (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) ^ (1 << ((*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) % 32));
-            }
-            else
-            {
-                ({ uint32_t _val = (modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) ^ (1 << ((*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id)) % 32)); if (!tlb_write(tlb, addr, &_val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
-            }
-            (void)0;
-            break;
-        case 0xbc:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            cpu->zf = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) == 0;
-            cpu->zf_res = 0;
-            if (!cpu->zf)
-                (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) = __builtin_ctz((modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })));
-            break;
-        case 0xbd:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            cpu->zf = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) == 0;
-            cpu->zf_res = 0;
-            if (!cpu->zf)
-                (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) = 32 - __builtin_clz((modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })));
-            break;
-
-        case 0xbe:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) = (uint32_t)(int8_t)(modrm.type == modrm_reg ? (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) : ({ uint8_t val; if (!tlb_read(tlb, addr, &val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
-            break;
-        case 0xbf:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) = (uint32_t)(int16_t)(modrm.type == modrm_reg ? (*(uint16_t *)(((char *)cpu) + (modrm_base).reg16_id)) : ({ uint16_t val; if (!tlb_read(tlb, addr, &val, 16/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
-            break;
-
-        case 0xc0:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            do
-            {
-                dword_t tmp = (*(uint8_t *)(((char *)cpu) + (modrm_regptr).reg8_id));
-                (*(uint8_t *)(((char *)cpu) + (modrm_regptr).reg8_id)) = (modrm.type == modrm_reg ? (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) : ({ uint8_t val; if (!tlb_read(tlb, addr, &val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
-                if (modrm.type == modrm_reg)
-                {
-                    (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) = tmp;
-                }
-                else
-                {
-                    ({ uint8_t _val = tmp; if (!tlb_write(tlb, addr, &_val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
-                }
-                (void)0;
-            } while (0);
-            cpu->op1 = (*(uint8_t *)(((char *)cpu) + (modrm_regptr).reg8_id));
-            cpu->op2 = (modrm.type == modrm_reg ? (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) : ({ uint8_t val; if (!tlb_read(tlb, addr, &val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
-            cpu->af_ops = 1;
-            cpu->cf = ({ int ov = __builtin_add_overflow((uint8_t) ((modrm.type == modrm_reg ? (*(uint8_t *) (((char *) cpu) + (modrm_base).reg8_id)) : ({ uint8_t val; if (!tlb_read(tlb, addr, &val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))), (uint8_t) ((*(uint8_t *) (((char *) cpu) + (modrm_regptr).reg8_id))), (uint8_t *) &cpu->res); cpu->res = (int8_t) cpu->res; ov; });
-            cpu->of = ({ int ov = __builtin_add_overflow((int8_t) ((modrm.type == modrm_reg ? (*(uint8_t *) (((char *) cpu) + (modrm_base).reg8_id)) : ({ uint8_t val; if (!tlb_read(tlb, addr, &val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))), (int8_t) ((*(uint8_t *) (((char *) cpu) + (modrm_regptr).reg8_id))), (int8_t *) &cpu->res); cpu->res = (int8_t) cpu->res; ov; });
-            if (modrm.type == modrm_reg)
-            {
-                (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) = cpu->res;
-            }
-            else
-            {
-                ({ uint8_t _val = cpu->res; if (!tlb_write(tlb, addr, &_val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
-            }
-            (void)0;
-            cpu->zf_res = cpu->sf_res = cpu->pf_res = 1;
-            break;
-        case 0xc1:
-            __use(0);
-            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-            {
-                cpu->segfault_addr = cpu->eip;
-                cpu->eip = saved_ip;
-                return 13;
-            };
-            do
-            {
-                dword_t tmp = (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id));
-                (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
-                if (modrm.type == modrm_reg)
-                {
-                    (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) = tmp;
-                }
-                else
-                {
-                    ({ uint32_t _val = tmp; if (!tlb_write(tlb, addr, &_val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
-                }
-                (void)0;
-            } while (0);
-            cpu->op1 = (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id));
-            cpu->op2 = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
-            cpu->af_ops = 1;
-            cpu->cf = ({ int ov = __builtin_add_overflow((uint32_t) ((modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))), (uint32_t) ((*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id))), (uint32_t *) &cpu->res); cpu->res = (int32_t) cpu->res; ov; });
-            cpu->of = ({ int ov = __builtin_add_overflow((int32_t) ((modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))), (int32_t) ((*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id))), (int32_t *) &cpu->res); cpu->res = (int32_t) cpu->res; ov; });
-            if (modrm.type == modrm_reg)
-            {
-                (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) = cpu->res;
-            }
-            else
-            {
-                ({ uint32_t _val = cpu->res; if (!tlb_write(tlb, addr, &_val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
-            }
-            (void)0;
-            cpu->zf_res = cpu->sf_res = cpu->pf_res = 1;
-            break;
-
-        case 0xc8:
-            __use(0);
-            *(uint32_t *)&cpu->eax = __builtin_bswap32(((uint32_t)cpu->eax));
-            break;
-        case 0xc9:
-            __use(0);
-            *(uint32_t *)&cpu->ecx = __builtin_bswap32(((uint32_t)cpu->ecx));
-            break;
-        case 0xca:
-            __use(0);
-            *(uint32_t *)&cpu->edx = __builtin_bswap32(((uint32_t)cpu->edx));
-            break;
-        case 0xcb:
-            __use(0);
-            *(uint32_t *)&cpu->ebx = __builtin_bswap32(((uint32_t)cpu->ebx));
-            break;
-        case 0xcc:
-            __use(0);
-            *(uint32_t *)&cpu->esp = __builtin_bswap32(((uint32_t)cpu->esp));
-            break;
-        case 0xcd:
-            __use(0);
-            *(uint32_t *)&cpu->ebp = __builtin_bswap32(((uint32_t)cpu->ebp));
-            break;
-        case 0xce:
-            __use(0);
-            *(uint32_t *)&cpu->esi = __builtin_bswap32(((uint32_t)cpu->esi));
-            break;
-        case 0xcf:
-            __use(0);
-            *(uint32_t *)&cpu->edi = __builtin_bswap32(((uint32_t)cpu->edi));
-            break;
-
-        default:
-            __use(0);
-            {
-                cpu->eip = saved_ip;
-                return 6;
-            };
-        }
-        break;
+//    case 0x0f:
+//
+//        insn = ({ uint8_t val; if (!tlb_read(tlb, cpu->eip, &val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = cpu->eip; return 13; } val; });
+//        cpu->eip += 8 / 8;
+//        __use(0, insn);
+//        switch (insn)
+//        {
+//        case 0x18 ... 0x1f:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            break;
+//
+//        case 0x28:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            {
+//                cpu->eip = saved_ip;
+//                return 6;
+//            };
+//            break;
+//        case 0x29:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            {
+//                cpu->eip = saved_ip;
+//                return 6;
+//            };
+//            break;
+//
+//        case 0x2e:
+//
+//            break;
+//
+//        case 0x31:
+//
+//            __use(0);
+//                imm = ({ uint32_t low, high; __asm__ volatile("rdtsc" : "=a" (high), "=d" (low)); ((uint64_t) high) << 32 | low; });
+//            cpu->eax = imm & 0xffffffff;
+//            cpu->edx = imm >> 32;
+//            break;
+//
+//        case 0x40:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            if ((cpu->of))
+//                (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
+//            break;
+//        case 0x41:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            if (!(cpu->of))
+//                (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
+//            break;
+//        case 0x42:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            if ((cpu->cf))
+//                (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
+//            break;
+//        case 0x43:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            if (!(cpu->cf))
+//                (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
+//            break;
+//        case 0x44:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            if ((cpu->zf_res ? cpu->res == 0 : cpu->zf))
+//                (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
+//            break;
+//        case 0x45:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            if (!(cpu->zf_res ? cpu->res == 0 : cpu->zf))
+//                (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
+//            break;
+//        case 0x46:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            if (((cpu->cf) | (cpu->zf_res ? cpu->res == 0 : cpu->zf)))
+//                (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
+//            break;
+//        case 0x47:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            if (!((cpu->cf) | (cpu->zf_res ? cpu->res == 0 : cpu->zf)))
+//                (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
+//            break;
+//        case 0x48:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            if ((cpu->sf_res ? (int32_t)cpu->res < 0 : cpu->sf))
+//                (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
+//            break;
+//        case 0x49:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            if (!(cpu->sf_res ? (int32_t)cpu->res < 0 : cpu->sf))
+//                (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
+//            break;
+//        case 0x4a:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            if ((cpu->pf_res ? !__builtin_parity(cpu->res & 0xff) : cpu->pf))
+//                (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
+//            break;
+//        case 0x4b:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            if (!(cpu->pf_res ? !__builtin_parity(cpu->res & 0xff) : cpu->pf))
+//                (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
+//            break;
+//        case 0x4c:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            if (((cpu->sf_res ? (int32_t)cpu->res < 0 : cpu->sf) ^ (cpu->of)))
+//                (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
+//            break;
+//        case 0x4d:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            if (!((cpu->sf_res ? (int32_t)cpu->res < 0 : cpu->sf) ^ (cpu->of)))
+//                (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
+//            break;
+//        case 0x4e:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            if ((((cpu->sf_res ? (int32_t)cpu->res < 0 : cpu->sf) ^ (cpu->of)) | (cpu->zf_res ? cpu->res == 0 : cpu->zf)))
+//                (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
+//            break;
+//        case 0x4f:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            if (!(((cpu->sf_res ? (int32_t)cpu->res < 0 : cpu->sf) ^ (cpu->of)) | (cpu->zf_res ? cpu->res == 0 : cpu->zf)))
+//                (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
+//            break;
+//
+//        case 0x57:
+//            __use(0);
+//
+//            break;
+//
+//        case 0x6e:
+//            __use(0);
+//
+//            break;
+//
+//        case 0x6f:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            {
+//                cpu->eip = saved_ip;
+//                return 6;
+//            };
+//            break;
+//
+//        case 0x73:
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            switch (modrm.opcode)
+//            {
+//            case 0x02:
+//                __use(0);
+//
+//            default:
+//            {
+//                cpu->eip = saved_ip;
+//                return 6;
+//            };
+//            }
+//            break;
+//
+//        case 0x77:
+//            __use(0);
+//            break;
+//
+//        case 0x7e:
+//            __use(0);
+//
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            {
+//                cpu->eip = saved_ip;
+//                return 6;
+//            };
+//            break;
+//
+//        case 0x7f:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            {
+//                cpu->eip = saved_ip;
+//                return 6;
+//            };
+//            break;
+//
+//        case 0x80:
+//            __use(0);
+//            imm = ({ uint32_t val; if (!tlb_read(tlb, cpu->eip, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = cpu->eip; return 13; } val; });
+//            cpu->eip += 32 / 8;
+//            __use(0, (long long)imm);
+//            if ((cpu->of))
+//            {
+//                cpu->eip += ((uint32_t)imm);
+//                if (32 == 16)
+//                    cpu->eip &= 0xffff;
+//            };
+//            break;
+//        case 0x81:
+//            __use(0);
+//            imm = ({ uint32_t val; if (!tlb_read(tlb, cpu->eip, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = cpu->eip; return 13; } val; });
+//            cpu->eip += 32 / 8;
+//            __use(0, (long long)imm);
+//            if (!(cpu->of))
+//            {
+//                cpu->eip += ((uint32_t)imm);
+//                if (32 == 16)
+//                    cpu->eip &= 0xffff;
+//            };
+//            break;
+//        case 0x82:
+//            __use(0);
+//            imm = ({ uint32_t val; if (!tlb_read(tlb, cpu->eip, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = cpu->eip; return 13; } val; });
+//            cpu->eip += 32 / 8;
+//            __use(0, (long long)imm);
+//            if ((cpu->cf))
+//            {
+//                cpu->eip += ((uint32_t)imm);
+//                if (32 == 16)
+//                    cpu->eip &= 0xffff;
+//            };
+//            break;
+//        case 0x83:
+//            __use(0);
+//            imm = ({ uint32_t val; if (!tlb_read(tlb, cpu->eip, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = cpu->eip; return 13; } val; });
+//            cpu->eip += 32 / 8;
+//            __use(0, (long long)imm);
+//            if (!(cpu->cf))
+//            {
+//                cpu->eip += ((uint32_t)imm);
+//                if (32 == 16)
+//                    cpu->eip &= 0xffff;
+//            };
+//            break;
+//        case 0x84:
+//            __use(0);
+//            imm = ({ uint32_t val; if (!tlb_read(tlb, cpu->eip, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = cpu->eip; return 13; } val; });
+//            cpu->eip += 32 / 8;
+//            __use(0, (long long)imm);
+//            if ((cpu->zf_res ? cpu->res == 0 : cpu->zf))
+//            {
+//                cpu->eip += ((uint32_t)imm);
+//                if (32 == 16)
+//                    cpu->eip &= 0xffff;
+//            };
+//            break;
+//        case 0x85:
+//            __use(0);
+//            imm = ({ uint32_t val; if (!tlb_read(tlb, cpu->eip, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = cpu->eip; return 13; } val; });
+//            cpu->eip += 32 / 8;
+//            __use(0, (long long)imm);
+//            if (!(cpu->zf_res ? cpu->res == 0 : cpu->zf))
+//            {
+//                cpu->eip += ((uint32_t)imm);
+//                if (32 == 16)
+//                    cpu->eip &= 0xffff;
+//            };
+//            break;
+//        case 0x86:
+//            __use(0);
+//            imm = ({ uint32_t val; if (!tlb_read(tlb, cpu->eip, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = cpu->eip; return 13; } val; });
+//            cpu->eip += 32 / 8;
+//            __use(0, (long long)imm);
+//            if (((cpu->cf) | (cpu->zf_res ? cpu->res == 0 : cpu->zf)))
+//            {
+//                cpu->eip += ((uint32_t)imm);
+//                if (32 == 16)
+//                    cpu->eip &= 0xffff;
+//            };
+//            break;
+//        case 0x87:
+//            __use(0);
+//            imm = ({ uint32_t val; if (!tlb_read(tlb, cpu->eip, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = cpu->eip; return 13; } val; });
+//            cpu->eip += 32 / 8;
+//            __use(0, (long long)imm);
+//            if (!((cpu->cf) | (cpu->zf_res ? cpu->res == 0 : cpu->zf)))
+//            {
+//                cpu->eip += ((uint32_t)imm);
+//                if (32 == 16)
+//                    cpu->eip &= 0xffff;
+//            };
+//            break;
+//        case 0x88:
+//            __use(0);
+//            imm = ({ uint32_t val; if (!tlb_read(tlb, cpu->eip, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = cpu->eip; return 13; } val; });
+//            cpu->eip += 32 / 8;
+//            __use(0, (long long)imm);
+//            if ((cpu->sf_res ? (int32_t)cpu->res < 0 : cpu->sf))
+//            {
+//                cpu->eip += ((uint32_t)imm);
+//                if (32 == 16)
+//                    cpu->eip &= 0xffff;
+//            };
+//            break;
+//        case 0x89:
+//            __use(0);
+//            imm = ({ uint32_t val; if (!tlb_read(tlb, cpu->eip, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = cpu->eip; return 13; } val; });
+//            cpu->eip += 32 / 8;
+//            __use(0, (long long)imm);
+//            if (!(cpu->sf_res ? (int32_t)cpu->res < 0 : cpu->sf))
+//            {
+//                cpu->eip += ((uint32_t)imm);
+//                if (32 == 16)
+//                    cpu->eip &= 0xffff;
+//            };
+//            break;
+//        case 0x8a:
+//            __use(0);
+//            imm = ({ uint32_t val; if (!tlb_read(tlb, cpu->eip, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = cpu->eip; return 13; } val; });
+//            cpu->eip += 32 / 8;
+//            __use(0, (long long)imm);
+//            if ((cpu->pf_res ? !__builtin_parity(cpu->res & 0xff) : cpu->pf))
+//            {
+//                cpu->eip += ((uint32_t)imm);
+//                if (32 == 16)
+//                    cpu->eip &= 0xffff;
+//            };
+//            break;
+//        case 0x8b:
+//            __use(0);
+//            imm = ({ uint32_t val; if (!tlb_read(tlb, cpu->eip, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = cpu->eip; return 13; } val; });
+//            cpu->eip += 32 / 8;
+//            __use(0, (long long)imm);
+//            if (!(cpu->pf_res ? !__builtin_parity(cpu->res & 0xff) : cpu->pf))
+//            {
+//                cpu->eip += ((uint32_t)imm);
+//                if (32 == 16)
+//                    cpu->eip &= 0xffff;
+//            };
+//            break;
+//        case 0x8c:
+//            __use(0);
+//            imm = ({ uint32_t val; if (!tlb_read(tlb, cpu->eip, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = cpu->eip; return 13; } val; });
+//            cpu->eip += 32 / 8;
+//            __use(0, (long long)imm);
+//            if (((cpu->sf_res ? (int32_t)cpu->res < 0 : cpu->sf) ^ (cpu->of)))
+//            {
+//                cpu->eip += ((uint32_t)imm);
+//                if (32 == 16)
+//                    cpu->eip &= 0xffff;
+//            };
+//            break;
+//        case 0x8d:
+//            __use(0);
+//            imm = ({ uint32_t val; if (!tlb_read(tlb, cpu->eip, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = cpu->eip; return 13; } val; });
+//            cpu->eip += 32 / 8;
+//            __use(0, (long long)imm);
+//            if (!((cpu->sf_res ? (int32_t)cpu->res < 0 : cpu->sf) ^ (cpu->of)))
+//            {
+//                cpu->eip += ((uint32_t)imm);
+//                if (32 == 16)
+//                    cpu->eip &= 0xffff;
+//            };
+//            break;
+//        case 0x8e:
+//            __use(0);
+//            imm = ({ uint32_t val; if (!tlb_read(tlb, cpu->eip, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = cpu->eip; return 13; } val; });
+//            cpu->eip += 32 / 8;
+//            __use(0, (long long)imm);
+//            if ((((cpu->sf_res ? (int32_t)cpu->res < 0 : cpu->sf) ^ (cpu->of)) | (cpu->zf_res ? cpu->res == 0 : cpu->zf)))
+//            {
+//                cpu->eip += ((uint32_t)imm);
+//                if (32 == 16)
+//                    cpu->eip &= 0xffff;
+//            };
+//            break;
+//        case 0x8f:
+//            __use(0);
+//            imm = ({ uint32_t val; if (!tlb_read(tlb, cpu->eip, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = cpu->eip; return 13; } val; });
+//            cpu->eip += 32 / 8;
+//            __use(0, (long long)imm);
+//            if (!(((cpu->sf_res ? (int32_t)cpu->res < 0 : cpu->sf) ^ (cpu->of)) | (cpu->zf_res ? cpu->res == 0 : cpu->zf)))
+//            {
+//                cpu->eip += ((uint32_t)imm);
+//                if (32 == 16)
+//                    cpu->eip &= 0xffff;
+//            };
+//            break;
+//
+//        case 0x90:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            if (modrm.type == modrm_reg)
+//            {
+//                (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) = ((cpu->of) ? 1 : 0);
+//            }
+//            else
+//            {
+//                ({ uint8_t _val = ((cpu->of) ? 1 : 0); if (!tlb_write(tlb, addr, &_val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
+//            }
+//            (void)0;
+//            break;
+//        case 0x91:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            if (modrm.type == modrm_reg)
+//            {
+//                (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) = ((cpu->of) ? 0 : 1);
+//            }
+//            else
+//            {
+//                ({ uint8_t _val = ((cpu->of) ? 0 : 1); if (!tlb_write(tlb, addr, &_val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
+//            }
+//            (void)0;
+//            break;
+//        case 0x92:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            if (modrm.type == modrm_reg)
+//            {
+//                (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) = ((cpu->cf) ? 1 : 0);
+//            }
+//            else
+//            {
+//                ({ uint8_t _val = ((cpu->cf) ? 1 : 0); if (!tlb_write(tlb, addr, &_val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
+//            }
+//            (void)0;
+//            break;
+//        case 0x93:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            if (modrm.type == modrm_reg)
+//            {
+//                (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) = ((cpu->cf) ? 0 : 1);
+//            }
+//            else
+//            {
+//                ({ uint8_t _val = ((cpu->cf) ? 0 : 1); if (!tlb_write(tlb, addr, &_val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
+//            }
+//            (void)0;
+//            break;
+//        case 0x94:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            if (modrm.type == modrm_reg)
+//            {
+//                (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) = ((cpu->zf_res ? cpu->res == 0 : cpu->zf) ? 1 : 0);
+//            }
+//            else
+//            {
+//                ({ uint8_t _val = ((cpu->zf_res ? cpu->res == 0 : cpu->zf) ? 1 : 0); if (!tlb_write(tlb, addr, &_val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
+//            }
+//            (void)0;
+//            break;
+//        case 0x95:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            if (modrm.type == modrm_reg)
+//            {
+//                (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) = ((cpu->zf_res ? cpu->res == 0 : cpu->zf) ? 0 : 1);
+//            }
+//            else
+//            {
+//                ({ uint8_t _val = ((cpu->zf_res ? cpu->res == 0 : cpu->zf) ? 0 : 1); if (!tlb_write(tlb, addr, &_val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
+//            }
+//            (void)0;
+//            break;
+//        case 0x96:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            if (modrm.type == modrm_reg)
+//            {
+//                (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) = (((cpu->cf) | (cpu->zf_res ? cpu->res == 0 : cpu->zf)) ? 1 : 0);
+//            }
+//            else
+//            {
+//                ({ uint8_t _val = (((cpu->cf) | (cpu->zf_res ? cpu->res == 0 : cpu->zf)) ? 1 : 0); if (!tlb_write(tlb, addr, &_val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
+//            }
+//            (void)0;
+//            break;
+//        case 0x97:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            if (modrm.type == modrm_reg)
+//            {
+//                (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) = (((cpu->cf) | (cpu->zf_res ? cpu->res == 0 : cpu->zf)) ? 0 : 1);
+//            }
+//            else
+//            {
+//                ({ uint8_t _val = (((cpu->cf) | (cpu->zf_res ? cpu->res == 0 : cpu->zf)) ? 0 : 1); if (!tlb_write(tlb, addr, &_val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
+//            }
+//            (void)0;
+//            break;
+//        case 0x98:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            if (modrm.type == modrm_reg)
+//            {
+//                (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) = ((cpu->sf_res ? (int32_t)cpu->res < 0 : cpu->sf) ? 1 : 0);
+//            }
+//            else
+//            {
+//                ({ uint8_t _val = ((cpu->sf_res ? (int32_t) cpu->res < 0 : cpu->sf) ? 1 : 0); if (!tlb_write(tlb, addr, &_val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
+//            }
+//            (void)0;
+//            break;
+//        case 0x99:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            if (modrm.type == modrm_reg)
+//            {
+//                (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) = ((cpu->sf_res ? (int32_t)cpu->res < 0 : cpu->sf) ? 0 : 1);
+//            }
+//            else
+//            {
+//                ({ uint8_t _val = ((cpu->sf_res ? (int32_t) cpu->res < 0 : cpu->sf) ? 0 : 1); if (!tlb_write(tlb, addr, &_val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
+//            }
+//            (void)0;
+//            break;
+//        case 0x9a:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            if (modrm.type == modrm_reg)
+//            {
+//                (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) = ((cpu->pf_res ? !__builtin_parity(cpu->res & 0xff) : cpu->pf) ? 1 : 0);
+//            }
+//            else
+//            {
+//                ({ uint8_t _val = ((cpu->pf_res ? !__builtin_parity(cpu->res & 0xff) : cpu->pf) ? 1 : 0); if (!tlb_write(tlb, addr, &_val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
+//            }
+//            (void)0;
+//            break;
+//        case 0x9b:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            if (modrm.type == modrm_reg)
+//            {
+//                (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) = ((cpu->pf_res ? !__builtin_parity(cpu->res & 0xff) : cpu->pf) ? 0 : 1);
+//            }
+//            else
+//            {
+//                ({ uint8_t _val = ((cpu->pf_res ? !__builtin_parity(cpu->res & 0xff) : cpu->pf) ? 0 : 1); if (!tlb_write(tlb, addr, &_val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
+//            }
+//            (void)0;
+//            break;
+//        case 0x9c:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            if (modrm.type == modrm_reg)
+//            {
+//                (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) = (((cpu->sf_res ? (int32_t)cpu->res < 0 : cpu->sf) ^ (cpu->of)) ? 1 : 0);
+//            }
+//            else
+//            {
+//                ({ uint8_t _val = (((cpu->sf_res ? (int32_t) cpu->res < 0 : cpu->sf) ^ (cpu->of)) ? 1 : 0); if (!tlb_write(tlb, addr, &_val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
+//            }
+//            (void)0;
+//            break;
+//        case 0x9d:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            if (modrm.type == modrm_reg)
+//            {
+//                (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) = (((cpu->sf_res ? (int32_t)cpu->res < 0 : cpu->sf) ^ (cpu->of)) ? 0 : 1);
+//            }
+//            else
+//            {
+//                ({ uint8_t _val = (((cpu->sf_res ? (int32_t) cpu->res < 0 : cpu->sf) ^ (cpu->of)) ? 0 : 1); if (!tlb_write(tlb, addr, &_val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
+//            }
+//            (void)0;
+//            break;
+//        case 0x9e:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            if (modrm.type == modrm_reg)
+//            {
+//                (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) = ((((cpu->sf_res ? (int32_t)cpu->res < 0 : cpu->sf) ^ (cpu->of)) | (cpu->zf_res ? cpu->res == 0 : cpu->zf)) ? 1 : 0);
+//            }
+//            else
+//            {
+//                ({ uint8_t _val = ((((cpu->sf_res ? (int32_t) cpu->res < 0 : cpu->sf) ^ (cpu->of)) | (cpu->zf_res ? cpu->res == 0 : cpu->zf)) ? 1 : 0); if (!tlb_write(tlb, addr, &_val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
+//            }
+//            (void)0;
+//            break;
+//        case 0x9f:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            if (modrm.type == modrm_reg)
+//            {
+//                (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) = ((((cpu->sf_res ? (int32_t)cpu->res < 0 : cpu->sf) ^ (cpu->of)) | (cpu->zf_res ? cpu->res == 0 : cpu->zf)) ? 0 : 1);
+//            }
+//            else
+//            {
+//                ({ uint8_t _val = ((((cpu->sf_res ? (int32_t) cpu->res < 0 : cpu->sf) ^ (cpu->of)) | (cpu->zf_res ? cpu->res == 0 : cpu->zf)) ? 0 : 1); if (!tlb_write(tlb, addr, &_val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
+//            }
+//            (void)0;
+//            break;
+//
+//        case 0xa2:
+//            __use(0);
+//            do_cpuid(&cpu->eax, &cpu->ebx, &cpu->ecx, &cpu->edx);
+//            break;
+//
+//        case 0xa3:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            cpu->cf = (((modrm.type != modrm_reg) ? ({ uint32_t val; if (!tlb_read(tlb, addr + (*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id)) / 32 * (32/8), &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr + (*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id)) / 32 * (32/8); return 13; } val; }) : (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))) & (1 << ((*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) % 32))) ? 1 : 0;
+//            ;
+//            break;
+//
+//        case 0xa4:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            imm = ({ uint8_t val; if (!tlb_read(tlb, cpu->eip, &val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = cpu->eip; return 13; } val; });
+//            cpu->eip += 8 / 8;
+//            __use(0, (long long)imm);
+//            imm = (int8_t)(uint8_t)imm;
+//            if (((uint8_t)imm) % 32 != 0)
+//            {
+//                int cnt = ((uint8_t)imm) % 32;
+//                cpu->res = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) << cnt | (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) >> (32 - cnt);
+//                if (modrm.type == modrm_reg)
+//                {
+//                    (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) = cpu->res;
+//                }
+//                else
+//                {
+//                    ({ uint32_t _val = cpu->res; if (!tlb_write(tlb, addr, &_val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
+//                }
+//                (void)0;
+//                cpu->zf_res = cpu->sf_res = cpu->pf_res = 1;
+//            };
+//            break;
+//        case 0xa5:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            if (((uint8_t)cpu->ecx) % 32 != 0)
+//            {
+//                int cnt = ((uint8_t)cpu->ecx) % 32;
+//                cpu->res = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) << cnt | (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) >> (32 - cnt);
+//                if (modrm.type == modrm_reg)
+//                {
+//                    (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) = cpu->res;
+//                }
+//                else
+//                {
+//                    ({ uint32_t _val = cpu->res; if (!tlb_write(tlb, addr, &_val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
+//                }
+//                (void)0;
+//                cpu->zf_res = cpu->sf_res = cpu->pf_res = 1;
+//            };
+//            break;
+//
+//        case 0xab:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            cpu->cf = (((modrm.type != modrm_reg) ? ({ uint32_t val; if (!tlb_read(tlb, addr + (*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id)) / 32 * (32/8), &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr + (*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id)) / 32 * (32/8); return 13; } val; }) : (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))) & (1 << ((*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) % 32))) ? 1 : 0;
+//            ;
+//            if (modrm.type == modrm_reg)
+//            {
+//                (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) | (1 << ((*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) % 32));
+//            }
+//            else
+//            {
+//                ({ uint32_t _val = (modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) | (1 << ((*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id)) % 32)); if (!tlb_write(tlb, addr, &_val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
+//            }
+//            (void)0;
+//            break;
+//
+//        case 0xac:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            imm = ({ uint8_t val; if (!tlb_read(tlb, cpu->eip, &val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = cpu->eip; return 13; } val; });
+//            cpu->eip += 8 / 8;
+//            __use(0, (long long)imm);
+//            imm = (int8_t)(uint8_t)imm;
+//            if (((uint8_t)imm) % 32 != 0)
+//            {
+//                int cnt = ((uint8_t)imm) % 32;
+//                cpu->cf = ((modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) >> (cnt - 1)) & 1;
+//                cpu->res = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) >> cnt | (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) << (32 - cnt);
+//                if (modrm.type == modrm_reg)
+//                {
+//                    (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) = cpu->res;
+//                }
+//                else
+//                {
+//                    ({ uint32_t _val = cpu->res; if (!tlb_write(tlb, addr, &_val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
+//                }
+//                (void)0;
+//                cpu->zf_res = cpu->sf_res = cpu->pf_res = 1;
+//            };
+//            break;
+//        case 0xad:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            if (((uint8_t)cpu->ecx) % 32 != 0)
+//            {
+//                int cnt = ((uint8_t)cpu->ecx) % 32;
+//                cpu->cf = ((modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) >> (cnt - 1)) & 1;
+//                cpu->res = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) >> cnt | (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) << (32 - cnt);
+//                if (modrm.type == modrm_reg)
+//                {
+//                    (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) = cpu->res;
+//                }
+//                else
+//                {
+//                    ({ uint32_t _val = cpu->res; if (!tlb_write(tlb, addr, &_val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
+//                }
+//                (void)0;
+//                cpu->zf_res = cpu->sf_res = cpu->pf_res = 1;
+//            };
+//            break;
+//
+//        case 0xaf:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            cpu->cf = cpu->of = ({ int ov = __builtin_mul_overflow((int32_t) ((*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id))), (int32_t) ((modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))), (int32_t *) &cpu->res); cpu->res = (int32_t) cpu->res; ov; });
+//            (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) = cpu->res;
+//            cpu->zf_res = cpu->sf_res = cpu->pf_res = 1;
+//            break;
+//
+//        case 0xb0:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            if (modrm.type == modrm_reg)
+//            {
+//                cpu->eip = saved_ip;
+//                return 6;
+//            };
+//            cpu->op1 = ((uint8_t)cpu->eax);
+//            cpu->op2 = (modrm.type == modrm_reg ? (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) : ({ uint8_t val; if (!tlb_read(tlb, addr, &val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
+//            cpu->af_ops = 1;
+//            cpu->cf = ({ int ov = __builtin_sub_overflow((uint8_t) ((modrm.type == modrm_reg ? (*(uint8_t *) (((char *) cpu) + (modrm_base).reg8_id)) : ({ uint8_t val; if (!tlb_read(tlb, addr, &val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))), (uint8_t) (((uint8_t) cpu->eax)), (uint8_t *) &cpu->res); cpu->res = (int8_t) cpu->res; ov; });
+//            cpu->of = ({ int ov = __builtin_sub_overflow((int8_t) ((modrm.type == modrm_reg ? (*(uint8_t *) (((char *) cpu) + (modrm_base).reg8_id)) : ({ uint8_t val; if (!tlb_read(tlb, addr, &val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))), (int8_t) (((uint8_t) cpu->eax)), (int8_t *) &cpu->res); cpu->res = (int8_t) cpu->res; ov; });
+//            cpu->zf_res = cpu->sf_res = cpu->pf_res = 1;
+//            if ((cpu->zf_res ? cpu->res == 0 : cpu->zf))
+//            {
+//                if (modrm.type == modrm_reg)
+//                {
+//                    (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) = (*(uint8_t *)(((char *)cpu) + (modrm_regptr).reg8_id));
+//                }
+//                else
+//                {
+//                    ({ uint8_t _val = (*(uint8_t *) (((char *) cpu) + (modrm_regptr).reg8_id)); if (!tlb_write(tlb, addr, &_val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
+//                }
+//                (void)0;
+//            }
+//            else
+//                *(uint8_t *)&cpu->eax = (modrm.type == modrm_reg ? (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) : ({ uint8_t val; if (!tlb_read(tlb, addr, &val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
+//            break;
+//        case 0xb1:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            if (modrm.type == modrm_reg)
+//            {
+//                cpu->eip = saved_ip;
+//                return 6;
+//            };
+//            cpu->op1 = ((uint32_t)cpu->eax);
+//            cpu->op2 = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
+//            cpu->af_ops = 1;
+//            cpu->cf = ({ int ov = __builtin_sub_overflow((uint32_t) ((modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))), (uint32_t) (((uint32_t) cpu->eax)), (uint32_t *) &cpu->res); cpu->res = (int32_t) cpu->res; ov; });
+//            cpu->of = ({ int ov = __builtin_sub_overflow((int32_t) ((modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))), (int32_t) (((uint32_t) cpu->eax)), (int32_t *) &cpu->res); cpu->res = (int32_t) cpu->res; ov; });
+//            cpu->zf_res = cpu->sf_res = cpu->pf_res = 1;
+//            if ((cpu->zf_res ? cpu->res == 0 : cpu->zf))
+//            {
+//                if (modrm.type == modrm_reg)
+//                {
+//                    (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) = (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id));
+//                }
+//                else
+//                {
+//                    ({ uint32_t _val = (*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id)); if (!tlb_write(tlb, addr, &_val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
+//                }
+//                (void)0;
+//            }
+//            else
+//                *(uint32_t *)&cpu->eax = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
+//            break;
+//
+//        case 0xb3:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            cpu->cf = (((modrm.type != modrm_reg) ? ({ uint32_t val; if (!tlb_read(tlb, addr + (*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id)) / 32 * (32/8), &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr + (*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id)) / 32 * (32/8); return 13; } val; }) : (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))) & (1 << ((*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) % 32))) ? 1 : 0;
+//            ;
+//            if (modrm.type == modrm_reg)
+//            {
+//                (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) & ~(1 << ((*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) % 32));
+//            }
+//            else
+//            {
+//                ({ uint32_t _val = (modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) & ~(1 << ((*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id)) % 32)); if (!tlb_write(tlb, addr, &_val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
+//            }
+//            (void)0;
+//            break;
+//
+//        case 0xb6:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) = (modrm.type == modrm_reg ? (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) : ({ uint8_t val; if (!tlb_read(tlb, addr, &val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
+//            break;
+//        case 0xb7:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) = (modrm.type == modrm_reg ? (*(uint16_t *)(((char *)cpu) + (modrm_base).reg16_id)) : ({ uint16_t val; if (!tlb_read(tlb, addr, &val, 16/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
+//            break;
+//
+//        case 0xba:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            imm = ({ uint8_t val; if (!tlb_read(tlb, cpu->eip, &val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = cpu->eip; return 13; } val; });
+//            cpu->eip += 8 / 8;
+//            __use(0, (long long)imm);
+//            imm = (int8_t)(uint8_t)imm;
+//            switch (modrm.opcode)
+//            {
+//            case 4:
+//                __use(0);
+//                cpu->cf = (((modrm.type != modrm_reg) ? ({ uint32_t val; if (!tlb_read(tlb, addr + ((uint32_t) imm) / 32 * (32/8), &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr + ((uint32_t) imm) / 32 * (32/8); return 13; } val; }) : (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))) & (1 << (((uint32_t)imm) % 32))) ? 1 : 0;
+//                ;
+//                break;
+//            case 5:
+//                __use(0);
+//                cpu->cf = (((modrm.type != modrm_reg) ? ({ uint32_t val; if (!tlb_read(tlb, addr + ((uint32_t) imm) / 32 * (32/8), &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr + ((uint32_t) imm) / 32 * (32/8); return 13; } val; }) : (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))) & (1 << (((uint32_t)imm) % 32))) ? 1 : 0;
+//                ;
+//                if (modrm.type == modrm_reg)
+//                {
+//                    (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) | (1 << (((uint32_t)imm) % 32));
+//                }
+//                else
+//                {
+//                    ({ uint32_t _val = (modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) | (1 << (((uint32_t) imm) % 32)); if (!tlb_write(tlb, addr, &_val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
+//                }
+//                (void)0;
+//                break;
+//            case 6:
+//                __use(0);
+//                cpu->cf = (((modrm.type != modrm_reg) ? ({ uint32_t val; if (!tlb_read(tlb, addr + ((uint32_t) imm) / 32 * (32/8), &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr + ((uint32_t) imm) / 32 * (32/8); return 13; } val; }) : (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))) & (1 << (((uint32_t)imm) % 32))) ? 1 : 0;
+//                ;
+//                if (modrm.type == modrm_reg)
+//                {
+//                    (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) & ~(1 << (((uint32_t)imm) % 32));
+//                }
+//                else
+//                {
+//                    ({ uint32_t _val = (modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) & ~(1 << (((uint32_t) imm) % 32)); if (!tlb_write(tlb, addr, &_val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
+//                }
+//                (void)0;
+//                break;
+//            case 7:
+//                __use(0);
+//                cpu->cf = (((modrm.type != modrm_reg) ? ({ uint32_t val; if (!tlb_read(tlb, addr + ((uint32_t) imm) / 32 * (32/8), &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr + ((uint32_t) imm) / 32 * (32/8); return 13; } val; }) : (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))) & (1 << (((uint32_t)imm) % 32))) ? 1 : 0;
+//                ;
+//                if (modrm.type == modrm_reg)
+//                {
+//                    (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) ^ (1 << (((uint32_t)imm) % 32));
+//                }
+//                else
+//                {
+//                    ({ uint32_t _val = (modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) ^ (1 << (((uint32_t) imm) % 32)); if (!tlb_write(tlb, addr, &_val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
+//                }
+//                (void)0;
+//                break;
+//            default:
+//            {
+//                cpu->eip = saved_ip;
+//                return 6;
+//            };
+//            };
+//            break;
+//
+//        case 0xbb:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            cpu->cf = (((modrm.type != modrm_reg) ? ({ uint32_t val; if (!tlb_read(tlb, addr + (*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id)) / 32 * (32/8), &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr + (*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id)) / 32 * (32/8); return 13; } val; }) : (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))) & (1 << ((*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) % 32))) ? 1 : 0;
+//            ;
+//            if (modrm.type == modrm_reg)
+//            {
+//                (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) ^ (1 << ((*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) % 32));
+//            }
+//            else
+//            {
+//                ({ uint32_t _val = (modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) ^ (1 << ((*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id)) % 32)); if (!tlb_write(tlb, addr, &_val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
+//            }
+//            (void)0;
+//            break;
+//        case 0xbc:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            cpu->zf = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) == 0;
+//            cpu->zf_res = 0;
+//            if (!cpu->zf)
+//                (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) = __builtin_ctz((modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })));
+//            break;
+//        case 0xbd:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            cpu->zf = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) == 0;
+//            cpu->zf_res = 0;
+//            if (!cpu->zf)
+//                (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) = 32 - __builtin_clz((modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })));
+//            break;
+//
+//        case 0xbe:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) = (uint32_t)(int8_t)(modrm.type == modrm_reg ? (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) : ({ uint8_t val; if (!tlb_read(tlb, addr, &val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
+//            break;
+//        case 0xbf:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) = (uint32_t)(int16_t)(modrm.type == modrm_reg ? (*(uint16_t *)(((char *)cpu) + (modrm_base).reg16_id)) : ({ uint16_t val; if (!tlb_read(tlb, addr, &val, 16/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
+//            break;
+//
+//        case 0xc0:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            do
+//            {
+//                dword_t tmp = (*(uint8_t *)(((char *)cpu) + (modrm_regptr).reg8_id));
+//                (*(uint8_t *)(((char *)cpu) + (modrm_regptr).reg8_id)) = (modrm.type == modrm_reg ? (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) : ({ uint8_t val; if (!tlb_read(tlb, addr, &val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
+//                if (modrm.type == modrm_reg)
+//                {
+//                    (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) = tmp;
+//                }
+//                else
+//                {
+//                    ({ uint8_t _val = tmp; if (!tlb_write(tlb, addr, &_val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
+//                }
+//                (void)0;
+//            } while (0);
+//            cpu->op1 = (*(uint8_t *)(((char *)cpu) + (modrm_regptr).reg8_id));
+//            cpu->op2 = (modrm.type == modrm_reg ? (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) : ({ uint8_t val; if (!tlb_read(tlb, addr, &val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
+//            cpu->af_ops = 1;
+//            cpu->cf = ({ int ov = __builtin_add_overflow((uint8_t) ((modrm.type == modrm_reg ? (*(uint8_t *) (((char *) cpu) + (modrm_base).reg8_id)) : ({ uint8_t val; if (!tlb_read(tlb, addr, &val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))), (uint8_t) ((*(uint8_t *) (((char *) cpu) + (modrm_regptr).reg8_id))), (uint8_t *) &cpu->res); cpu->res = (int8_t) cpu->res; ov; });
+//            cpu->of = ({ int ov = __builtin_add_overflow((int8_t) ((modrm.type == modrm_reg ? (*(uint8_t *) (((char *) cpu) + (modrm_base).reg8_id)) : ({ uint8_t val; if (!tlb_read(tlb, addr, &val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))), (int8_t) ((*(uint8_t *) (((char *) cpu) + (modrm_regptr).reg8_id))), (int8_t *) &cpu->res); cpu->res = (int8_t) cpu->res; ov; });
+//            if (modrm.type == modrm_reg)
+//            {
+//                (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) = cpu->res;
+//            }
+//            else
+//            {
+//                ({ uint8_t _val = cpu->res; if (!tlb_write(tlb, addr, &_val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
+//            }
+//            (void)0;
+//            cpu->zf_res = cpu->sf_res = cpu->pf_res = 1;
+//            break;
+//        case 0xc1:
+//            __use(0);
+//            if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//            {
+//                cpu->segfault_addr = cpu->eip;
+//                cpu->eip = saved_ip;
+//                return 13;
+//            };
+//            do
+//            {
+//                dword_t tmp = (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id));
+//                (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
+//                if (modrm.type == modrm_reg)
+//                {
+//                    (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) = tmp;
+//                }
+//                else
+//                {
+//                    ({ uint32_t _val = tmp; if (!tlb_write(tlb, addr, &_val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
+//                }
+//                (void)0;
+//            } while (0);
+//            cpu->op1 = (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id));
+//            cpu->op2 = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
+//            cpu->af_ops = 1;
+//            cpu->cf = ({ int ov = __builtin_add_overflow((uint32_t) ((modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))), (uint32_t) ((*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id))), (uint32_t *) &cpu->res); cpu->res = (int32_t) cpu->res; ov; });
+//            cpu->of = ({ int ov = __builtin_add_overflow((int32_t) ((modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))), (int32_t) ((*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id))), (int32_t *) &cpu->res); cpu->res = (int32_t) cpu->res; ov; });
+//            if (modrm.type == modrm_reg)
+//            {
+//                (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) = cpu->res;
+//            }
+//            else
+//            {
+//                ({ uint32_t _val = cpu->res; if (!tlb_write(tlb, addr, &_val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
+//            }
+//            (void)0;
+//            cpu->zf_res = cpu->sf_res = cpu->pf_res = 1;
+//            break;
+//
+//        case 0xc8:
+//            __use(0);
+//            *(uint32_t *)&cpu->eax = __builtin_bswap32(((uint32_t)cpu->eax));
+//            break;
+//        case 0xc9:
+//            __use(0);
+//            *(uint32_t *)&cpu->ecx = __builtin_bswap32(((uint32_t)cpu->ecx));
+//            break;
+//        case 0xca:
+//            __use(0);
+//            *(uint32_t *)&cpu->edx = __builtin_bswap32(((uint32_t)cpu->edx));
+//            break;
+//        case 0xcb:
+//            __use(0);
+//            *(uint32_t *)&cpu->ebx = __builtin_bswap32(((uint32_t)cpu->ebx));
+//            break;
+//        case 0xcc:
+//            __use(0);
+//            *(uint32_t *)&cpu->esp = __builtin_bswap32(((uint32_t)cpu->esp));
+//            break;
+//        case 0xcd:
+//            __use(0);
+//            *(uint32_t *)&cpu->ebp = __builtin_bswap32(((uint32_t)cpu->ebp));
+//            break;
+//        case 0xce:
+//            __use(0);
+//            *(uint32_t *)&cpu->esi = __builtin_bswap32(((uint32_t)cpu->esi));
+//            break;
+//        case 0xcf:
+//            __use(0);
+//            *(uint32_t *)&cpu->edi = __builtin_bswap32(((uint32_t)cpu->edi));
+//            break;
+//
+//        default:
+//            __use(0);
+//            {
+//                cpu->eip = saved_ip;
+//                return 6;
+//            };
+//        }
+//        break;
 
     case 0x10 + 0x0:
         __use(0);
@@ -3582,13 +3584,17 @@ restart:
             return 13;
         };
             uint32_t valTemp; tlb_read(tlb, addr, &valTemp, 32/8);
+#ifdef BDEBUG
             printk("0x8b MOV PRE [%x] = %x\n", addr, valTemp);
+#endif
         (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
+#ifdef BDEBUG
             if (modrm.type == modrm_reg) {
                 printk("0x8b MOV %s, %s\n", reg32_name(modrm.reg), reg32_name(modrm.base));
             } else {
                 printk("0x8b MOV %s, [%x] = %x\n", reg32_name(modrm.reg), addr, (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) );
             }
+#endif
         break;
 
     case 0x8d:
@@ -6162,9 +6168,9 @@ restart:
                 cpu->op1 = ((uint32_t)imm);
                 cpu->op2 = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
                 cpu->af_ops = 1;
-                    
+                    #ifdef BDEBUG
                     if (modrm.type == modrm_reg) printk("ADD Reg %s", reg32_name(modrm.reg)); else printk("ADD Addr 0x%x", addr);
-                    
+#endif
                 cpu->cf = ({ int ov = __builtin_add_overflow((uint32_t) ((modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))), (uint32_t) (((uint32_t) imm)), (uint32_t *) &cpu->res); cpu->res = (int32_t) cpu->res; ov; });
                 cpu->of = ({ int ov = __builtin_add_overflow((int32_t) ((modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))), (int32_t) (((uint32_t) imm)), (int32_t *) &cpu->res); cpu->res = (int32_t) cpu->res; ov; });
                 if (modrm.type == modrm_reg)
@@ -6189,9 +6195,9 @@ restart:
                     ({ uint32_t _val = (modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) | ((uint32_t) imm); if (!tlb_write(tlb, addr, &_val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
                 }
                 (void)0;
-                    
+                    #ifdef BDEBUG
                 if (modrm.type == modrm_reg) printk("OR Reg %s", reg32_name(modrm.reg)); else printk("OR Addr 0x%x", addr);
-                    
+#endif
                 cpu->cf = cpu->of = cpu->af = cpu->af_ops = 0;
                 cpu->res = (int32_t)(int32_t)((modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })));
                 cpu->zf_res = cpu->sf_res = cpu->pf_res = 1;
@@ -6201,9 +6207,9 @@ restart:
                 cpu->op1 = ((uint32_t)imm);
                 cpu->op2 = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
                 cpu->af_ops = 1;
-                    
+#ifdef BDEBUG
                 if (modrm.type == modrm_reg) printk("ADC Reg %s", reg32_name(modrm.reg)); else printk("ADC Addr 0x%x", addr);
-                    
+#endif
                 cpu->of = ({ int ov = __builtin_add_overflow((int32_t) ((modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))), (int32_t) (((uint32_t) imm) + cpu->cf), (int32_t *) &cpu->res); cpu->res = (int32_t) cpu->res; ov; }) || (cpu->cf && ((uint32_t)imm) == ((uint32_t)-1) / 2);
                 cpu->cf = ({ int ov = __builtin_add_overflow((uint32_t) ((modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))), (uint32_t) (((uint32_t) imm) + cpu->cf), (uint32_t *) &cpu->res); cpu->res = (int32_t) cpu->res; ov; }) || (cpu->cf && ((uint32_t)imm) == (uint32_t)-1);
                 if (modrm.type == modrm_reg)
@@ -6222,9 +6228,9 @@ restart:
                 cpu->op1 = ((uint32_t)imm);
                 cpu->op2 = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
                 cpu->af_ops = 1;
-                    
+                    #ifdef BDEBUG
                     if (modrm.type == modrm_reg) printk("SBB Reg %s", reg32_name(modrm.reg)); else printk("SBB Addr 0x%x", addr);
-                    
+#endif
                 cpu->of = ({ int ov = __builtin_sub_overflow((int32_t) ((modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))), (int32_t) (((uint32_t) imm) + cpu->cf), (int32_t *) &cpu->res); cpu->res = (int32_t) cpu->res; ov; }) || (cpu->cf && ((uint32_t)imm) == ((uint32_t)-1) / 2);
                 cpu->cf = ({ int ov = __builtin_sub_overflow((uint32_t) ((modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))), (uint32_t) (((uint32_t) imm) + cpu->cf), (uint32_t *) &cpu->res); cpu->res = (int32_t) cpu->res; ov; }) || (cpu->cf && ((uint32_t)imm) == (uint32_t)-1);
                 if (modrm.type == modrm_reg)
@@ -6249,9 +6255,9 @@ restart:
                     ({ uint32_t _val = (modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) & ((uint32_t) imm); if (!tlb_write(tlb, addr, &_val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
                 }
                 (void)0;
-                    
+                    #ifdef BDEBUG
                 if (modrm.type == modrm_reg) printk("AND Reg %s", reg32_name(modrm.reg)); else printk("AND Addr 0x%x", addr);
-                    
+#endif
                 cpu->cf = cpu->of = cpu->af = cpu->af_ops = 0;
                 cpu->res = (int32_t)(int32_t)((modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })));
                 cpu->zf_res = cpu->sf_res = cpu->pf_res = 1;
@@ -6261,9 +6267,9 @@ restart:
                 cpu->op1 = ((uint32_t)imm);
                 cpu->op2 = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
                 cpu->af_ops = 1;
-                    
+                    #ifdef BDEBUG
                 if (modrm.type == modrm_reg) printk("SUB Reg %s", reg32_name(modrm.reg)); else printk("SUB Addr 0x%x", addr);
-                    
+#endif
                 cpu->of = ({ int ov = __builtin_sub_overflow((int32_t) ((modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))), (int32_t) (((uint32_t) imm)), (int32_t *) &cpu->res); cpu->res = (int32_t) cpu->res; ov; });
                 cpu->cf = ({ int ov = __builtin_sub_overflow((uint32_t) ((modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))), (uint32_t) (((uint32_t) imm)), (uint32_t *) &cpu->res); cpu->res = (int32_t) cpu->res; ov; });
                 if (modrm.type == modrm_reg)
@@ -6288,9 +6294,9 @@ restart:
                     ({ uint32_t _val = (modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) ^ ((uint32_t) imm); if (!tlb_write(tlb, addr, &_val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
                 }
                 (void)0;
-                    
+                    #ifdef BDEBUG
                 if (modrm.type == modrm_reg) printk("XOR Reg %s", reg32_name(modrm.reg)); else printk("XOR Addr 0x%x", addr);
-                    
+#endif
                 cpu->cf = cpu->of = cpu->af = cpu->af_ops = 0;
                 cpu->res = (int32_t)(int32_t)((modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })));
                 cpu->zf_res = cpu->sf_res = cpu->pf_res = 1;
@@ -6448,302 +6454,302 @@ restart:
             };
             break;
 
-        case 0x0f:
-            insn = ({ uint8_t val; if (!tlb_read(tlb, cpu->eip, &val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = cpu->eip; return 13; } val; });
-            cpu->eip += 8 / 8;
-            __use(0, insn);
-            switch (insn)
-            {
-            case 0xab:
-                __use(0);
-                if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-                {
-                    cpu->segfault_addr = cpu->eip;
-                    cpu->eip = saved_ip;
-                    return 13;
-                };
-                cpu->cf = (((modrm.type != modrm_reg) ? ({ uint32_t val; if (!tlb_read(tlb, addr + (*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id)) / 32 * (32/8), &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr + (*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id)) / 32 * (32/8); return 13; } val; }) : (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))) & (1 << ((*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) % 32))) ? 1 : 0;
-                ;
-                if (modrm.type == modrm_reg)
-                {
-                    (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) | (1 << ((*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) % 32));
-                }
-                else
-                {
-                    ({ uint32_t _val = (modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) | (1 << ((*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id)) % 32)); if (!tlb_write(tlb, addr, &_val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
-                }
-                (void)0;
-                break;
-            case 0xb3:
-                __use(0);
-                if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-                {
-                    cpu->segfault_addr = cpu->eip;
-                    cpu->eip = saved_ip;
-                    return 13;
-                };
-                cpu->cf = (((modrm.type != modrm_reg) ? ({ uint32_t val; if (!tlb_read(tlb, addr + (*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id)) / 32 * (32/8), &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr + (*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id)) / 32 * (32/8); return 13; } val; }) : (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))) & (1 << ((*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) % 32))) ? 1 : 0;
-                ;
-                if (modrm.type == modrm_reg)
-                {
-                    (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) & ~(1 << ((*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) % 32));
-                }
-                else
-                {
-                    ({ uint32_t _val = (modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) & ~(1 << ((*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id)) % 32)); if (!tlb_write(tlb, addr, &_val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
-                }
-                (void)0;
-                break;
-            case 0xbb:
-                __use(0);
-                if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-                {
-                    cpu->segfault_addr = cpu->eip;
-                    cpu->eip = saved_ip;
-                    return 13;
-                };
-                cpu->cf = (((modrm.type != modrm_reg) ? ({ uint32_t val; if (!tlb_read(tlb, addr + (*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id)) / 32 * (32/8), &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr + (*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id)) / 32 * (32/8); return 13; } val; }) : (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))) & (1 << ((*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) % 32))) ? 1 : 0;
-                ;
-                if (modrm.type == modrm_reg)
-                {
-                    (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) ^ (1 << ((*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) % 32));
-                }
-                else
-                {
-                    ({ uint32_t _val = (modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) ^ (1 << ((*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id)) % 32)); if (!tlb_write(tlb, addr, &_val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
-                }
-                (void)0;
-                break;
-
-            case 0xba:
-                __use(0);
-                if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-                {
-                    cpu->segfault_addr = cpu->eip;
-                    cpu->eip = saved_ip;
-                    return 13;
-                };
-                imm = ({ uint8_t val; if (!tlb_read(tlb, cpu->eip, &val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = cpu->eip; return 13; } val; });
-                cpu->eip += 8 / 8;
-                __use(0, (long long)imm);
-                imm = (int8_t)(uint8_t)imm;
-                switch (modrm.opcode)
-                {
-                case 5:
-                    __use(0);
-                    cpu->cf = (((modrm.type != modrm_reg) ? ({ uint32_t val; if (!tlb_read(tlb, addr + ((uint32_t) imm) / 32 * (32/8), &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr + ((uint32_t) imm) / 32 * (32/8); return 13; } val; }) : (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))) & (1 << (((uint32_t)imm) % 32))) ? 1 : 0;
-                    ;
-                    if (modrm.type == modrm_reg)
-                    {
-                        (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) | (1 << (((uint32_t)imm) % 32));
-                    }
-                    else
-                    {
-                        ({ uint32_t _val = (modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) | (1 << (((uint32_t) imm) % 32)); if (!tlb_write(tlb, addr, &_val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
-                    }
-                    (void)0;
-                    break;
-                case 6:
-                    __use(0);
-                    cpu->cf = (((modrm.type != modrm_reg) ? ({ uint32_t val; if (!tlb_read(tlb, addr + ((uint32_t) imm) / 32 * (32/8), &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr + ((uint32_t) imm) / 32 * (32/8); return 13; } val; }) : (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))) & (1 << (((uint32_t)imm) % 32))) ? 1 : 0;
-                    ;
-                    if (modrm.type == modrm_reg)
-                    {
-                        (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) & ~(1 << (((uint32_t)imm) % 32));
-                    }
-                    else
-                    {
-                        ({ uint32_t _val = (modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) & ~(1 << (((uint32_t) imm) % 32)); if (!tlb_write(tlb, addr, &_val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
-                    }
-                    (void)0;
-                    break;
-                case 7:
-                    __use(0);
-                    cpu->cf = (((modrm.type != modrm_reg) ? ({ uint32_t val; if (!tlb_read(tlb, addr + ((uint32_t) imm) / 32 * (32/8), &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr + ((uint32_t) imm) / 32 * (32/8); return 13; } val; }) : (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))) & (1 << (((uint32_t)imm) % 32))) ? 1 : 0;
-                    ;
-                    if (modrm.type == modrm_reg)
-                    {
-                        (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) ^ (1 << (((uint32_t)imm) % 32));
-                    }
-                    else
-                    {
-                        ({ uint32_t _val = (modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) ^ (1 << (((uint32_t) imm) % 32)); if (!tlb_write(tlb, addr, &_val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
-                    }
-                    (void)0;
-                    break;
-                default:
-                {
-                    cpu->eip = saved_ip;
-                    return 6;
-                };
-                };
-                break;
-
-            case 0xb0:
-                __use(0);
-                if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-                {
-                    cpu->segfault_addr = cpu->eip;
-                    cpu->eip = saved_ip;
-                    return 13;
-                };
-                if (modrm.type == modrm_reg)
-                {
-                    cpu->eip = saved_ip;
-                    return 6;
-                };
-                cpu->op1 = ((uint8_t)cpu->eax);
-                cpu->op2 = (modrm.type == modrm_reg ? (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) : ({ uint8_t val; if (!tlb_read(tlb, addr, &val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
-                cpu->af_ops = 1;
-                cpu->cf = ({ int ov = __builtin_sub_overflow((uint8_t) ((modrm.type == modrm_reg ? (*(uint8_t *) (((char *) cpu) + (modrm_base).reg8_id)) : ({ uint8_t val; if (!tlb_read(tlb, addr, &val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))), (uint8_t) (((uint8_t) cpu->eax)), (uint8_t *) &cpu->res); cpu->res = (int8_t) cpu->res; ov; });
-                cpu->of = ({ int ov = __builtin_sub_overflow((int8_t) ((modrm.type == modrm_reg ? (*(uint8_t *) (((char *) cpu) + (modrm_base).reg8_id)) : ({ uint8_t val; if (!tlb_read(tlb, addr, &val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))), (int8_t) (((uint8_t) cpu->eax)), (int8_t *) &cpu->res); cpu->res = (int8_t) cpu->res; ov; });
-                cpu->zf_res = cpu->sf_res = cpu->pf_res = 1;
-                if ((cpu->zf_res ? cpu->res == 0 : cpu->zf))
-                {
-                    if (modrm.type == modrm_reg)
-                    {
-                        (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) = (*(uint8_t *)(((char *)cpu) + (modrm_regptr).reg8_id));
-                    }
-                    else
-                    {
-                        ({ uint8_t _val = (*(uint8_t *) (((char *) cpu) + (modrm_regptr).reg8_id)); if (!tlb_write(tlb, addr, &_val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
-                    }
-                    (void)0;
-                }
-                else
-                    *(uint8_t *)&cpu->eax = (modrm.type == modrm_reg ? (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) : ({ uint8_t val; if (!tlb_read(tlb, addr, &val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
-                break;
-            case 0xb1:
-                __use(0);
-                if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-                {
-                    cpu->segfault_addr = cpu->eip;
-                    cpu->eip = saved_ip;
-                    return 13;
-                };
-                if (modrm.type == modrm_reg)
-                {
-                    cpu->eip = saved_ip;
-                    return 6;
-                };
-                cpu->op1 = ((uint32_t)cpu->eax);
-                cpu->op2 = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
-                cpu->af_ops = 1;
-                cpu->cf = ({ int ov = __builtin_sub_overflow((uint32_t) ((modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))), (uint32_t) (((uint32_t) cpu->eax)), (uint32_t *) &cpu->res); cpu->res = (int32_t) cpu->res; ov; });
-                cpu->of = ({ int ov = __builtin_sub_overflow((int32_t) ((modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))), (int32_t) (((uint32_t) cpu->eax)), (int32_t *) &cpu->res); cpu->res = (int32_t) cpu->res; ov; });
-                cpu->zf_res = cpu->sf_res = cpu->pf_res = 1;
-                if ((cpu->zf_res ? cpu->res == 0 : cpu->zf))
-                {
-                    if (modrm.type == modrm_reg)
-                    {
-                        (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) = (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id));
-                    }
-                    else
-                    {
-                        ({ uint32_t _val = (*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id)); if (!tlb_write(tlb, addr, &_val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
-                    }
-                    (void)0;
-                }
-                else
-                    *(uint32_t *)&cpu->eax = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
-                break;
-
-            case 0xc0:
-                __use(0);
-                if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-                {
-                    cpu->segfault_addr = cpu->eip;
-                    cpu->eip = saved_ip;
-                    return 13;
-                };
-                if (modrm.type == modrm_reg)
-                {
-                    cpu->eip = saved_ip;
-                    return 6;
-                };
-                do
-                {
-                    dword_t tmp = (*(uint8_t *)(((char *)cpu) + (modrm_regptr).reg8_id));
-                    (*(uint8_t *)(((char *)cpu) + (modrm_regptr).reg8_id)) = (modrm.type == modrm_reg ? (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) : ({ uint8_t val; if (!tlb_read(tlb, addr, &val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
-                    if (modrm.type == modrm_reg)
-                    {
-                        (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) = tmp;
-                    }
-                    else
-                    {
-                        ({ uint8_t _val = tmp; if (!tlb_write(tlb, addr, &_val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
-                    }
-                    (void)0;
-                } while (0);
-                cpu->op1 = (*(uint8_t *)(((char *)cpu) + (modrm_regptr).reg8_id));
-                cpu->op2 = (modrm.type == modrm_reg ? (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) : ({ uint8_t val; if (!tlb_read(tlb, addr, &val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
-                cpu->af_ops = 1;
-                cpu->cf = ({ int ov = __builtin_add_overflow((uint8_t) ((modrm.type == modrm_reg ? (*(uint8_t *) (((char *) cpu) + (modrm_base).reg8_id)) : ({ uint8_t val; if (!tlb_read(tlb, addr, &val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))), (uint8_t) ((*(uint8_t *) (((char *) cpu) + (modrm_regptr).reg8_id))), (uint8_t *) &cpu->res); cpu->res = (int8_t) cpu->res; ov; });
-                cpu->of = ({ int ov = __builtin_add_overflow((int8_t) ((modrm.type == modrm_reg ? (*(uint8_t *) (((char *) cpu) + (modrm_base).reg8_id)) : ({ uint8_t val; if (!tlb_read(tlb, addr, &val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))), (int8_t) ((*(uint8_t *) (((char *) cpu) + (modrm_regptr).reg8_id))), (int8_t *) &cpu->res); cpu->res = (int8_t) cpu->res; ov; });
-                if (modrm.type == modrm_reg)
-                {
-                    (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) = cpu->res;
-                }
-                else
-                {
-                    ({ uint8_t _val = cpu->res; if (!tlb_write(tlb, addr, &_val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
-                }
-                (void)0;
-                cpu->zf_res = cpu->sf_res = cpu->pf_res = 1;
-                break;
-            case 0xc1:
-                __use(0);
-                if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
-                {
-                    cpu->segfault_addr = cpu->eip;
-                    cpu->eip = saved_ip;
-                    return 13;
-                };
-                if (modrm.type == modrm_reg)
-                {
-                    cpu->eip = saved_ip;
-                    return 6;
-                };
-                do
-                {
-                    dword_t tmp = (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id));
-                    (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
-                    if (modrm.type == modrm_reg)
-                    {
-                        (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) = tmp;
-                    }
-                    else
-                    {
-                        ({ uint32_t _val = tmp; if (!tlb_write(tlb, addr, &_val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
-                    }
-                    (void)0;
-                } while (0);
-                cpu->op1 = (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id));
-                cpu->op2 = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
-                cpu->af_ops = 1;
-                cpu->cf = ({ int ov = __builtin_add_overflow((uint32_t) ((modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))), (uint32_t) ((*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id))), (uint32_t *) &cpu->res); cpu->res = (int32_t) cpu->res; ov; });
-                cpu->of = ({ int ov = __builtin_add_overflow((int32_t) ((modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))), (int32_t) ((*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id))), (int32_t *) &cpu->res); cpu->res = (int32_t) cpu->res; ov; });
-                if (modrm.type == modrm_reg)
-                {
-                    (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) = cpu->res;
-                }
-                else
-                {
-                    ({ uint32_t _val = cpu->res; if (!tlb_write(tlb, addr, &_val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
-                }
-                (void)0;
-                cpu->zf_res = cpu->sf_res = cpu->pf_res = 1;
-                break;
-
-            default:
-                __use(0);
-                {
-                    cpu->eip = saved_ip;
-                    return 6;
-                };
-            }
-            break;
-
+//        case 0x0f:
+//            insn = ({ uint8_t val; if (!tlb_read(tlb, cpu->eip, &val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = cpu->eip; return 13; } val; });
+//            cpu->eip += 8 / 8;
+//            __use(0, insn);
+//            switch (insn)
+//            {
+//            case 0xab:
+//                __use(0);
+//                if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//                {
+//                    cpu->segfault_addr = cpu->eip;
+//                    cpu->eip = saved_ip;
+//                    return 13;
+//                };
+//                cpu->cf = (((modrm.type != modrm_reg) ? ({ uint32_t val; if (!tlb_read(tlb, addr + (*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id)) / 32 * (32/8), &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr + (*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id)) / 32 * (32/8); return 13; } val; }) : (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))) & (1 << ((*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) % 32))) ? 1 : 0;
+//                ;
+//                if (modrm.type == modrm_reg)
+//                {
+//                    (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) | (1 << ((*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) % 32));
+//                }
+//                else
+//                {
+//                    ({ uint32_t _val = (modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) | (1 << ((*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id)) % 32)); if (!tlb_write(tlb, addr, &_val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
+//                }
+//                (void)0;
+//                break;
+//            case 0xb3:
+//                __use(0);
+//                if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//                {
+//                    cpu->segfault_addr = cpu->eip;
+//                    cpu->eip = saved_ip;
+//                    return 13;
+//                };
+//                cpu->cf = (((modrm.type != modrm_reg) ? ({ uint32_t val; if (!tlb_read(tlb, addr + (*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id)) / 32 * (32/8), &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr + (*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id)) / 32 * (32/8); return 13; } val; }) : (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))) & (1 << ((*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) % 32))) ? 1 : 0;
+//                ;
+//                if (modrm.type == modrm_reg)
+//                {
+//                    (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) & ~(1 << ((*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) % 32));
+//                }
+//                else
+//                {
+//                    ({ uint32_t _val = (modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) & ~(1 << ((*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id)) % 32)); if (!tlb_write(tlb, addr, &_val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
+//                }
+//                (void)0;
+//                break;
+//            case 0xbb:
+//                __use(0);
+//                if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//                {
+//                    cpu->segfault_addr = cpu->eip;
+//                    cpu->eip = saved_ip;
+//                    return 13;
+//                };
+//                cpu->cf = (((modrm.type != modrm_reg) ? ({ uint32_t val; if (!tlb_read(tlb, addr + (*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id)) / 32 * (32/8), &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr + (*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id)) / 32 * (32/8); return 13; } val; }) : (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))) & (1 << ((*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) % 32))) ? 1 : 0;
+//                ;
+//                if (modrm.type == modrm_reg)
+//                {
+//                    (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) ^ (1 << ((*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) % 32));
+//                }
+//                else
+//                {
+//                    ({ uint32_t _val = (modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) ^ (1 << ((*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id)) % 32)); if (!tlb_write(tlb, addr, &_val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
+//                }
+//                (void)0;
+//                break;
+//
+//            case 0xba:
+//                __use(0);
+//                if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//                {
+//                    cpu->segfault_addr = cpu->eip;
+//                    cpu->eip = saved_ip;
+//                    return 13;
+//                };
+//                imm = ({ uint8_t val; if (!tlb_read(tlb, cpu->eip, &val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = cpu->eip; return 13; } val; });
+//                cpu->eip += 8 / 8;
+//                __use(0, (long long)imm);
+//                imm = (int8_t)(uint8_t)imm;
+//                switch (modrm.opcode)
+//                {
+//                case 5:
+//                    __use(0);
+//                    cpu->cf = (((modrm.type != modrm_reg) ? ({ uint32_t val; if (!tlb_read(tlb, addr + ((uint32_t) imm) / 32 * (32/8), &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr + ((uint32_t) imm) / 32 * (32/8); return 13; } val; }) : (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))) & (1 << (((uint32_t)imm) % 32))) ? 1 : 0;
+//                    ;
+//                    if (modrm.type == modrm_reg)
+//                    {
+//                        (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) | (1 << (((uint32_t)imm) % 32));
+//                    }
+//                    else
+//                    {
+//                        ({ uint32_t _val = (modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) | (1 << (((uint32_t) imm) % 32)); if (!tlb_write(tlb, addr, &_val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
+//                    }
+//                    (void)0;
+//                    break;
+//                case 6:
+//                    __use(0);
+//                    cpu->cf = (((modrm.type != modrm_reg) ? ({ uint32_t val; if (!tlb_read(tlb, addr + ((uint32_t) imm) / 32 * (32/8), &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr + ((uint32_t) imm) / 32 * (32/8); return 13; } val; }) : (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))) & (1 << (((uint32_t)imm) % 32))) ? 1 : 0;
+//                    ;
+//                    if (modrm.type == modrm_reg)
+//                    {
+//                        (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) & ~(1 << (((uint32_t)imm) % 32));
+//                    }
+//                    else
+//                    {
+//                        ({ uint32_t _val = (modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) & ~(1 << (((uint32_t) imm) % 32)); if (!tlb_write(tlb, addr, &_val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
+//                    }
+//                    (void)0;
+//                    break;
+//                case 7:
+//                    __use(0);
+//                    cpu->cf = (((modrm.type != modrm_reg) ? ({ uint32_t val; if (!tlb_read(tlb, addr + ((uint32_t) imm) / 32 * (32/8), &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr + ((uint32_t) imm) / 32 * (32/8); return 13; } val; }) : (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))) & (1 << (((uint32_t)imm) % 32))) ? 1 : 0;
+//                    ;
+//                    if (modrm.type == modrm_reg)
+//                    {
+//                        (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) ^ (1 << (((uint32_t)imm) % 32));
+//                    }
+//                    else
+//                    {
+//                        ({ uint32_t _val = (modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) ^ (1 << (((uint32_t) imm) % 32)); if (!tlb_write(tlb, addr, &_val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
+//                    }
+//                    (void)0;
+//                    break;
+//                default:
+//                {
+//                    cpu->eip = saved_ip;
+//                    return 6;
+//                };
+//                };
+//                break;
+//
+//            case 0xb0:
+//                __use(0);
+//                if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//                {
+//                    cpu->segfault_addr = cpu->eip;
+//                    cpu->eip = saved_ip;
+//                    return 13;
+//                };
+//                if (modrm.type == modrm_reg)
+//                {
+//                    cpu->eip = saved_ip;
+//                    return 6;
+//                };
+//                cpu->op1 = ((uint8_t)cpu->eax);
+//                cpu->op2 = (modrm.type == modrm_reg ? (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) : ({ uint8_t val; if (!tlb_read(tlb, addr, &val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
+//                cpu->af_ops = 1;
+//                cpu->cf = ({ int ov = __builtin_sub_overflow((uint8_t) ((modrm.type == modrm_reg ? (*(uint8_t *) (((char *) cpu) + (modrm_base).reg8_id)) : ({ uint8_t val; if (!tlb_read(tlb, addr, &val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))), (uint8_t) (((uint8_t) cpu->eax)), (uint8_t *) &cpu->res); cpu->res = (int8_t) cpu->res; ov; });
+//                cpu->of = ({ int ov = __builtin_sub_overflow((int8_t) ((modrm.type == modrm_reg ? (*(uint8_t *) (((char *) cpu) + (modrm_base).reg8_id)) : ({ uint8_t val; if (!tlb_read(tlb, addr, &val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))), (int8_t) (((uint8_t) cpu->eax)), (int8_t *) &cpu->res); cpu->res = (int8_t) cpu->res; ov; });
+//                cpu->zf_res = cpu->sf_res = cpu->pf_res = 1;
+//                if ((cpu->zf_res ? cpu->res == 0 : cpu->zf))
+//                {
+//                    if (modrm.type == modrm_reg)
+//                    {
+//                        (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) = (*(uint8_t *)(((char *)cpu) + (modrm_regptr).reg8_id));
+//                    }
+//                    else
+//                    {
+//                        ({ uint8_t _val = (*(uint8_t *) (((char *) cpu) + (modrm_regptr).reg8_id)); if (!tlb_write(tlb, addr, &_val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
+//                    }
+//                    (void)0;
+//                }
+//                else
+//                    *(uint8_t *)&cpu->eax = (modrm.type == modrm_reg ? (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) : ({ uint8_t val; if (!tlb_read(tlb, addr, &val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
+//                break;
+//            case 0xb1:
+//                __use(0);
+//                if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//                {
+//                    cpu->segfault_addr = cpu->eip;
+//                    cpu->eip = saved_ip;
+//                    return 13;
+//                };
+//                if (modrm.type == modrm_reg)
+//                {
+//                    cpu->eip = saved_ip;
+//                    return 6;
+//                };
+//                cpu->op1 = ((uint32_t)cpu->eax);
+//                cpu->op2 = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
+//                cpu->af_ops = 1;
+//                cpu->cf = ({ int ov = __builtin_sub_overflow((uint32_t) ((modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))), (uint32_t) (((uint32_t) cpu->eax)), (uint32_t *) &cpu->res); cpu->res = (int32_t) cpu->res; ov; });
+//                cpu->of = ({ int ov = __builtin_sub_overflow((int32_t) ((modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))), (int32_t) (((uint32_t) cpu->eax)), (int32_t *) &cpu->res); cpu->res = (int32_t) cpu->res; ov; });
+//                cpu->zf_res = cpu->sf_res = cpu->pf_res = 1;
+//                if ((cpu->zf_res ? cpu->res == 0 : cpu->zf))
+//                {
+//                    if (modrm.type == modrm_reg)
+//                    {
+//                        (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) = (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id));
+//                    }
+//                    else
+//                    {
+//                        ({ uint32_t _val = (*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id)); if (!tlb_write(tlb, addr, &_val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
+//                    }
+//                    (void)0;
+//                }
+//                else
+//                    *(uint32_t *)&cpu->eax = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
+//                break;
+//
+//            case 0xc0:
+//                __use(0);
+//                if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//                {
+//                    cpu->segfault_addr = cpu->eip;
+//                    cpu->eip = saved_ip;
+//                    return 13;
+//                };
+//                if (modrm.type == modrm_reg)
+//                {
+//                    cpu->eip = saved_ip;
+//                    return 6;
+//                };
+//                do
+//                {
+//                    dword_t tmp = (*(uint8_t *)(((char *)cpu) + (modrm_regptr).reg8_id));
+//                    (*(uint8_t *)(((char *)cpu) + (modrm_regptr).reg8_id)) = (modrm.type == modrm_reg ? (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) : ({ uint8_t val; if (!tlb_read(tlb, addr, &val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
+//                    if (modrm.type == modrm_reg)
+//                    {
+//                        (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) = tmp;
+//                    }
+//                    else
+//                    {
+//                        ({ uint8_t _val = tmp; if (!tlb_write(tlb, addr, &_val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
+//                    }
+//                    (void)0;
+//                } while (0);
+//                cpu->op1 = (*(uint8_t *)(((char *)cpu) + (modrm_regptr).reg8_id));
+//                cpu->op2 = (modrm.type == modrm_reg ? (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) : ({ uint8_t val; if (!tlb_read(tlb, addr, &val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
+//                cpu->af_ops = 1;
+//                cpu->cf = ({ int ov = __builtin_add_overflow((uint8_t) ((modrm.type == modrm_reg ? (*(uint8_t *) (((char *) cpu) + (modrm_base).reg8_id)) : ({ uint8_t val; if (!tlb_read(tlb, addr, &val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))), (uint8_t) ((*(uint8_t *) (((char *) cpu) + (modrm_regptr).reg8_id))), (uint8_t *) &cpu->res); cpu->res = (int8_t) cpu->res; ov; });
+//                cpu->of = ({ int ov = __builtin_add_overflow((int8_t) ((modrm.type == modrm_reg ? (*(uint8_t *) (((char *) cpu) + (modrm_base).reg8_id)) : ({ uint8_t val; if (!tlb_read(tlb, addr, &val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))), (int8_t) ((*(uint8_t *) (((char *) cpu) + (modrm_regptr).reg8_id))), (int8_t *) &cpu->res); cpu->res = (int8_t) cpu->res; ov; });
+//                if (modrm.type == modrm_reg)
+//                {
+//                    (*(uint8_t *)(((char *)cpu) + (modrm_base).reg8_id)) = cpu->res;
+//                }
+//                else
+//                {
+//                    ({ uint8_t _val = cpu->res; if (!tlb_write(tlb, addr, &_val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
+//                }
+//                (void)0;
+//                cpu->zf_res = cpu->sf_res = cpu->pf_res = 1;
+//                break;
+//            case 0xc1:
+//                __use(0);
+//                if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
+//                {
+//                    cpu->segfault_addr = cpu->eip;
+//                    cpu->eip = saved_ip;
+//                    return 13;
+//                };
+//                if (modrm.type == modrm_reg)
+//                {
+//                    cpu->eip = saved_ip;
+//                    return 6;
+//                };
+//                do
+//                {
+//                    dword_t tmp = (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id));
+//                    (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
+//                    if (modrm.type == modrm_reg)
+//                    {
+//                        (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) = tmp;
+//                    }
+//                    else
+//                    {
+//                        ({ uint32_t _val = tmp; if (!tlb_write(tlb, addr, &_val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
+//                    }
+//                    (void)0;
+//                } while (0);
+//                cpu->op1 = (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id));
+//                cpu->op2 = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
+//                cpu->af_ops = 1;
+//                cpu->cf = ({ int ov = __builtin_add_overflow((uint32_t) ((modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))), (uint32_t) ((*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id))), (uint32_t *) &cpu->res); cpu->res = (int32_t) cpu->res; ov; });
+//                cpu->of = ({ int ov = __builtin_add_overflow((int32_t) ((modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))), (int32_t) ((*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id))), (int32_t *) &cpu->res); cpu->res = (int32_t) cpu->res; ov; });
+//                if (modrm.type == modrm_reg)
+//                {
+//                    (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) = cpu->res;
+//                }
+//                else
+//                {
+//                    ({ uint32_t _val = cpu->res; if (!tlb_write(tlb, addr, &_val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
+//                }
+//                (void)0;
+//                cpu->zf_res = cpu->sf_res = cpu->pf_res = 1;
+//                break;
+//
+//            default:
+//                __use(0);
+//                {
+//                    cpu->eip = saved_ip;
+//                    return 6;
+//                };
+//            }
+//            break;
+//
         case 0xfe:
             __use(0);
             if (!modrm_compute(cpu, tlb, &addr, &modrm, &modrm_regptr, &modrm_base))
