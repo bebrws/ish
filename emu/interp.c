@@ -215,15 +215,15 @@ int cpu_step32(struct cpu_state *cpu, struct tlb *tlb)
     struct modrm modrm;
 
 restart:
-#ifdef BDEBUG
+//# ifdef BDEBUG
     printk("\nP:%d eax: %x ebx: %x ecx: %x edx: %x esi: %x edi: %x ebp: %x esp: %x eip: %x eflags: %x res: %x\n", current->pid,  cpu->eax, cpu->ebx, cpu->ecx, cpu->edx, cpu->esi, cpu->edi, cpu->ebp, cpu->esp, cpu->eip, cpu->eflags, cpu->res);
     printk("\nP:%d cf_bit %d pf %d af %d zf %d sf %d tf %d if_ %d df %d of_bit %d iopl %d pf_res %d sf_res %d af_ops %d\n", current->pid, cpu->cf_bit, cpu->pf, cpu->af, cpu->zf, cpu->sf, cpu->tf, cpu->if_, cpu->df, cpu->of_bit, cpu->iopl, cpu->pf_res, cpu->sf_res, cpu->af_ops);
-#endif
+// # end if
     insn = ({ uint8_t val; if (!tlb_read(tlb, cpu->eip, &val, 8/8)) { cpu->eip = saved_ip; cpu->segfault_addr = cpu->eip; return 13; } val; });
-#ifdef BDEBUG
+//# ifdef BDEBUG
     printk("P:%d EIP: %x Op: %x\n", current->pid, cpu->eip, insn);
     // printk("\nEIP is: %x\n", cpu->eip);
-#endif
+// # end if
     cpu->eip += 8 / 8;
     __use(0, insn);
 
@@ -3584,17 +3584,17 @@ restart:
             return 13;
         };
             uint32_t valTemp; tlb_read(tlb, addr, &valTemp, 32/8);
-#ifdef BDEBUG
+//# ifdef BDEBUG
             printk("0x8b MOV PRE [%x] = %x\n", addr, valTemp);
-#endif
+// # end if
         (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
-#ifdef BDEBUG
+//# ifdef BDEBUG
             if (modrm.type == modrm_reg) {
                 printk("0x8b MOV %s, %s\n", reg32_name(modrm.reg), reg32_name(modrm.base));
             } else {
                 printk("0x8b MOV %s, [%x] = %x\n", reg32_name(modrm.reg), addr, (*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) );
             }
-#endif
+// # end if
         break;
 
     case 0x8d:
@@ -6168,9 +6168,9 @@ restart:
                 cpu->op1 = ((uint32_t)imm);
                 cpu->op2 = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
                 cpu->af_ops = 1;
-                    #ifdef BDEBUG
+                    //# ifdef BDEBUG
                     if (modrm.type == modrm_reg) printk("ADD Reg %s", reg32_name(modrm.reg)); else printk("ADD Addr 0x%x", addr);
-#endif
+// # end if
                 cpu->cf = ({ int ov = __builtin_add_overflow((uint32_t) ((modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))), (uint32_t) (((uint32_t) imm)), (uint32_t *) &cpu->res); cpu->res = (int32_t) cpu->res; ov; });
                 cpu->of = ({ int ov = __builtin_add_overflow((int32_t) ((modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))), (int32_t) (((uint32_t) imm)), (int32_t *) &cpu->res); cpu->res = (int32_t) cpu->res; ov; });
                 if (modrm.type == modrm_reg)
@@ -6195,9 +6195,9 @@ restart:
                     ({ uint32_t _val = (modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) | ((uint32_t) imm); if (!tlb_write(tlb, addr, &_val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
                 }
                 (void)0;
-                    #ifdef BDEBUG
+                    //# ifdef BDEBUG
                 if (modrm.type == modrm_reg) printk("OR Reg %s", reg32_name(modrm.reg)); else printk("OR Addr 0x%x", addr);
-#endif
+// # end if
                 cpu->cf = cpu->of = cpu->af = cpu->af_ops = 0;
                 cpu->res = (int32_t)(int32_t)((modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })));
                 cpu->zf_res = cpu->sf_res = cpu->pf_res = 1;
@@ -6207,9 +6207,9 @@ restart:
                 cpu->op1 = ((uint32_t)imm);
                 cpu->op2 = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
                 cpu->af_ops = 1;
-#ifdef BDEBUG
+//# ifdef BDEBUG
                 if (modrm.type == modrm_reg) printk("ADC Reg %s", reg32_name(modrm.reg)); else printk("ADC Addr 0x%x", addr);
-#endif
+// # end if
                 cpu->of = ({ int ov = __builtin_add_overflow((int32_t) ((modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))), (int32_t) (((uint32_t) imm) + cpu->cf), (int32_t *) &cpu->res); cpu->res = (int32_t) cpu->res; ov; }) || (cpu->cf && ((uint32_t)imm) == ((uint32_t)-1) / 2);
                 cpu->cf = ({ int ov = __builtin_add_overflow((uint32_t) ((modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))), (uint32_t) (((uint32_t) imm) + cpu->cf), (uint32_t *) &cpu->res); cpu->res = (int32_t) cpu->res; ov; }) || (cpu->cf && ((uint32_t)imm) == (uint32_t)-1);
                 if (modrm.type == modrm_reg)
@@ -6228,9 +6228,9 @@ restart:
                 cpu->op1 = ((uint32_t)imm);
                 cpu->op2 = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
                 cpu->af_ops = 1;
-                    #ifdef BDEBUG
+                    //# ifdef BDEBUG
                     if (modrm.type == modrm_reg) printk("SBB Reg %s", reg32_name(modrm.reg)); else printk("SBB Addr 0x%x", addr);
-#endif
+// # end if
                 cpu->of = ({ int ov = __builtin_sub_overflow((int32_t) ((modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))), (int32_t) (((uint32_t) imm) + cpu->cf), (int32_t *) &cpu->res); cpu->res = (int32_t) cpu->res; ov; }) || (cpu->cf && ((uint32_t)imm) == ((uint32_t)-1) / 2);
                 cpu->cf = ({ int ov = __builtin_sub_overflow((uint32_t) ((modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))), (uint32_t) (((uint32_t) imm) + cpu->cf), (uint32_t *) &cpu->res); cpu->res = (int32_t) cpu->res; ov; }) || (cpu->cf && ((uint32_t)imm) == (uint32_t)-1);
                 if (modrm.type == modrm_reg)
@@ -6255,9 +6255,9 @@ restart:
                     ({ uint32_t _val = (modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) & ((uint32_t) imm); if (!tlb_write(tlb, addr, &_val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
                 }
                 (void)0;
-                    #ifdef BDEBUG
+                    //# ifdef BDEBUG
                 if (modrm.type == modrm_reg) printk("AND Reg %s", reg32_name(modrm.reg)); else printk("AND Addr 0x%x", addr);
-#endif
+// # end if
                 cpu->cf = cpu->of = cpu->af = cpu->af_ops = 0;
                 cpu->res = (int32_t)(int32_t)((modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })));
                 cpu->zf_res = cpu->sf_res = cpu->pf_res = 1;
@@ -6267,9 +6267,9 @@ restart:
                 cpu->op1 = ((uint32_t)imm);
                 cpu->op2 = (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }));
                 cpu->af_ops = 1;
-                    #ifdef BDEBUG
+                    //# ifdef BDEBUG
                 if (modrm.type == modrm_reg) printk("SUB Reg %s", reg32_name(modrm.reg)); else printk("SUB Addr 0x%x", addr);
-#endif
+// # end if
                 cpu->of = ({ int ov = __builtin_sub_overflow((int32_t) ((modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))), (int32_t) (((uint32_t) imm)), (int32_t *) &cpu->res); cpu->res = (int32_t) cpu->res; ov; });
                 cpu->cf = ({ int ov = __builtin_sub_overflow((uint32_t) ((modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))), (uint32_t) (((uint32_t) imm)), (uint32_t *) &cpu->res); cpu->res = (int32_t) cpu->res; ov; });
                 if (modrm.type == modrm_reg)
@@ -6294,9 +6294,9 @@ restart:
                     ({ uint32_t _val = (modrm.type == modrm_reg ? (*(uint32_t *) (((char *) cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })) ^ ((uint32_t) imm); if (!tlb_write(tlb, addr, &_val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } });
                 }
                 (void)0;
-                    #ifdef BDEBUG
+                    //# ifdef BDEBUG
                 if (modrm.type == modrm_reg) printk("XOR Reg %s", reg32_name(modrm.reg)); else printk("XOR Addr 0x%x", addr);
-#endif
+// # end if
                 cpu->cf = cpu->of = cpu->af = cpu->af_ops = 0;
                 cpu->res = (int32_t)(int32_t)((modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; })));
                 cpu->zf_res = cpu->sf_res = cpu->pf_res = 1;
