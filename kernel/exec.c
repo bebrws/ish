@@ -19,6 +19,8 @@
 
 #define ARGV_MAX 32 * PAGE_SIZE
 
+const char *noDebugString = "NoFilename";
+
 struct exec_args {
     // number of arguments
     size_t count;
@@ -82,6 +84,11 @@ static int load_entry(struct prg_header ph, addr_t bias, struct fd *fd, const ch
     addr_t filesize = ph.filesize;
     //___1****1___
     int flags = P_READ;
+    
+    char *newDebugString;
+    newDebugString = malloc(sizeof(char) * 500);
+    sprintf(newDebugString, "file: %s ", debugString);
+    
     if (ph.flags & PH_W) flags |= P_WRITE;
 
     //printk("\nTASK ELF:  Load Entry addr  %x  offset   %x  memsize   %x   fielsize   %x\n",  addr, offset, memsize, filesize);
@@ -99,7 +106,7 @@ static int load_entry(struct prg_header ph, addr_t bias, struct fd *fd, const ch
     
     mem_pt(current->mem, PAGE(addr))->data->pgstart = PAGE(addr);
     mem_pt(current->mem, PAGE(addr))->data->pgnum =  PAGE_ROUND_UP(filesize + PGOFFSET(addr));
-    sprintf(mem_pt(current->mem, PAGE(addr))->data->debugString, "ph offset %x  - %s", offset, debugString ? debugString : "" );
+    sprintf(mem_pt(current->mem, PAGE(addr))->data->debugString, "ph offset %x  - %s", offset, newDebugString ? newDebugString : noDebugString );
     
     
     mem_pt(current->mem, PAGE(addr))->brads = 1;

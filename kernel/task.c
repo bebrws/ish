@@ -94,6 +94,9 @@ void (*task_run_hook)(void) = NULL;
 
 static void *task_run(void *task) {
     current = task;
+    
+    current->cpu.instructionCount = 0;
+    
     if (task_run_hook)
         task_run_hook();
     else

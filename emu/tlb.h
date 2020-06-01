@@ -5,6 +5,8 @@
 #include "emu/memory.h"
 #include "debug.h"
 
+#include "kernel/task.h"
+
 struct tlb_entry {
     page_t page;
     page_t page_if_writable;
@@ -50,6 +52,9 @@ forceinline __no_instrument bool tlb_read(struct tlb *tlb, addr_t addr, void *ou
 }
 
 forceinline __no_instrument void *__tlb_write_ptr(struct tlb *tlb, addr_t addr) {
+    struct pt_entry *pte = mem_pt(current->mem, PAGE(addr));
+    const char *dbgStr = pte->data->debugString;
+    printf("DEBUGSTRING: %s\n", dbgStr);
     struct tlb_entry entry = tlb->entries[TLB_INDEX(addr)];
     if (entry.page_if_writable == TLB_PAGE(addr)) {
         tlb->dirty_page = TLB_PAGE(addr);

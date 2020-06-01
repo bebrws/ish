@@ -146,6 +146,9 @@ struct cpu_state {
     addr_t segfault_addr;
 
     dword_t trapno;
+    
+    // brad debug
+    int instructionCount;
 };
 
 // flags
