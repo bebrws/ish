@@ -85,16 +85,19 @@ static int load_entry(struct prg_header ph, addr_t bias, struct fd *fd, const ch
     //___1****1___
     int flags = P_READ;
     
+    // TODO: Brad This isnt necessary? And also leaks mem of course
     char *newDebugString;
-    newDebugString = malloc(sizeof(char) * 500);
+    newDebugString = malloc(sizeof(char) * (strlen(debugString) + 100));
     sprintf(newDebugString, "file: %s ", debugString);
     
-    if (ph.flags & PH_W) flags |= P_WRITE;
+    if (ph.flags & PH_W) {
+        flags |= P_WRITE;
+    }
 
     //printk("\nTASK ELF:  Load Entry addr  %x  offset   %x  memsize   %x   fielsize   %x\n",  addr, offset, memsize, filesize);
     if ((err = fd->ops->mmap(fd, current->mem, PAGE(addr),
                     PAGE_ROUND_UP(filesize + PGOFFSET(addr)),
-                    offset - PGOFFSET(addr), flags, MMAP_PRIVATE)) < 0)
+                    offset - PGOFFSET(addr), flags, MMAP_PRIVATE, newDebugString)) < 0)
         return err;
     // TODO find a better place for these to avoid code duplication
     mem_pt(current->mem, PAGE(addr))->data->fd = fd_retain(fd);
@@ -162,6 +165,8 @@ static addr_t find_hole_for_elf(struct elf_header *header, struct prg_header *ph
     }
     return pt_find_hole(current->mem, size) << PAGE_BITS;
 }
+
+const char *vdso_string = "[vdso]";
 
 static int elf_exec(struct fd *fd, const char *file, struct exec_args argv, struct exec_args envp) {
     int err = 0;
@@ -294,9 +299,10 @@ static int elf_exec(struct fd *fd, const char *file, struct exec_args argv, stru
     if (vdso_page == BAD_PAGE)
         goto beyond_hope;
     vdso_page += 1;
-    if ((err = pt_map(current->mem, vdso_page, vdso_pages, (void *) vdso_data, 0, 0)) < 0)
+    if ((err = pt_map(current->mem, vdso_page, vdso_pages, (void *) vdso_data, 0, 0, vdso_string)) < 0)
         goto beyond_hope;
-    mem_pt(current->mem, vdso_page)->data->name = "[vdso]";
+    mem_pt(current->mem, vdso_page)->data->name = vdso_string;
+    sprintf(mem_pt(current->mem, vdso_page)->data->debugString, "%s", vdso_string);
     current->mm->vdso = vdso_page << PAGE_BITS;
     addr_t vdso_entry = current->mm->vdso + ((struct elf_header *) vdso_data)->entry_point;
 

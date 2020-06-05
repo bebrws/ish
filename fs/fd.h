@@ -147,7 +147,7 @@ struct fd_ops {
     void (*seekdir)(struct fd *fd, unsigned long ptr);
 
     // map the file
-    int (*mmap)(struct fd *fd, struct mem *mem, page_t start, pages_t pages, off_t offset, int prot, int flags);
+    int (*mmap)(struct fd *fd, struct mem *mem, page_t start, pages_t pages, off_t offset, int prot, int flags, const char *debugString);
 
     // returns a bitmask of operations that won't block
     int (*poll)(struct fd *fd);

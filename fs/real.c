@@ -247,7 +247,7 @@ int realfs_poll(struct fd *fd) {
     return p.revents;
 }
 
-int realfs_mmap(struct fd *fd, struct mem *mem, page_t start, pages_t pages, off_t offset, int prot, int flags) {
+int realfs_mmap(struct fd *fd, struct mem *mem, page_t start, pages_t pages, off_t offset, int prot, int flags, const char *debugString) {
     if (pages == 0)
         return 0;
 
@@ -265,7 +265,7 @@ int realfs_mmap(struct fd *fd, struct mem *mem, page_t start, pages_t pages, off
     //printk("\n MMAP: Mapping memory ptr %x to page %x  real offset %x", memory, start, real_offset);
     //printk("\n MMAP: - firs few bytes %x %x %x %x %x %x\n", memory[0], memory[1], memory[2], memory[3], memory[4], memory[5]);
     
-    return pt_map(mem, start, pages, memory, correction, prot);
+    return pt_map(mem, start, pages, memory, correction, prot, debugString);
 }
 
 static ssize_t realfs_readlink(struct mount *mount, const char *path, char *buf, size_t bufsize) {

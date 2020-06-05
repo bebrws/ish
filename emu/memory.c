@@ -77,7 +77,12 @@ void mem_next_page(struct mem *mem, page_t *page) {
 page_t pt_find_hole(struct mem *mem, pages_t size) {
     page_t hole_end;
     bool in_hole = false;
-    // TODO: BUG: This only allocates size - 1 pages 
+    // TODO: BUG: This only allocates size - 1 pages
+
+    /*
+    for (page_t page = 0xf7ffd; page > 0x40000; page--) { if (mem_pt(mem, page) != NULL) { printf("Page 0x%x is mapped\n", page); } }
+     */
+    
     for (page_t page = 0xf7ffd; page > 0x40000; page--) {
         // I don't know how this works but it does
         if (!in_hole && mem_pt(mem, page) == NULL) {
@@ -100,7 +105,7 @@ bool pt_is_hole(struct mem *mem, page_t start, pages_t pages) {
     return true;
 }
 
-int pt_map(struct mem *mem, page_t start, pages_t pages, void *memory, size_t offset, unsigned flags) {
+int pt_map(struct mem *mem, page_t start, pages_t pages, void *memory, size_t offset, unsigned flags, const char *debugString) {
     if (memory == MAP_FAILED)
         return errno_map();
 
@@ -113,12 +118,13 @@ int pt_map(struct mem *mem, page_t start, pages_t pages, void *memory, size_t of
     *data = (struct data) {
         .data = memory,
         .size = pages * PAGE_SIZE + offset,
-
 #if LEAK_DEBUG
         .pid = current ? current->pid : 0,
         .dest = start << PAGE_BITS,
 #endif
     };
+    
+    sprintf(data->debugString, "%s", debugString);
 
     for (page_t page = start; page < start + pages; page++) {
         if (mem_pt(mem, page) != NULL)
@@ -163,11 +169,18 @@ int pt_unmap_always(struct mem *mem, page_t start, pages_t pages) {
     return 0;
 }
 
+
+static int eee = 0;
 int pt_map_nothing(struct mem *mem, page_t start, pages_t pages, unsigned flags) {
     if (pages == 0) return 0;
     void *memory = mmap(NULL, pages * PAGE_SIZE,
             PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
-    return pt_map(mem, start, pages, memory, 0, flags | P_ANONYMOUS);
+    
+    char *empty_mmap_str;
+    empty_mmap_str = malloc(100);
+    sprintf(empty_mmap_str, "empty mmap %d", eee++);
+    
+    return pt_map(mem, start, pages, memory, 0, flags | P_ANONYMOUS, empty_mmap_str);
 }
 
 int pt_set_flags(struct mem *mem, page_t start, pages_t pages, int flags) {
@@ -218,9 +231,11 @@ static void mem_changed(struct mem *mem) {
     mem->changes++;
 }
 
+
 void *mem_ptr(struct mem *mem, addr_t addr, int type) {
     page_t page = PAGE(addr);
     struct pt_entry *entry = mem_pt(mem, page);
+
 
     if (entry == NULL) {
         // page does not exist
@@ -262,7 +277,12 @@ void *mem_ptr(struct mem *mem, addr_t addr, int type) {
             // copy/paste from above
             read_wrunlock(&mem->lock);
             write_wrlock(&mem->lock);
-            pt_map(mem, page, 1, copy, 0, entry->flags &~ P_COW);
+            
+            char *newDebugString;
+            newDebugString = malloc(4000);
+            sprintf(newDebugString, "COW From: %s", entry->data->debugString);
+            
+            pt_map(mem, page, 1, copy, 0, entry->flags &~ P_COW, newDebugString);
             write_wrunlock(&mem->lock);
             read_wrlock(&mem->lock);
         }

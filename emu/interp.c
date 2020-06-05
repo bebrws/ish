@@ -39,6 +39,8 @@
 
 #include "kernel/errno.h"
 
+lock_t bradsdebuglock = LOCK_INITIALIZER;
+
 
 
 #include <unistd.h>
@@ -225,31 +227,44 @@ restart:
     cpu->eip += 8 / 8;
     __use(0, insn);
     
+    
+    
+    lock(&bradsdebuglock);
     cpu->instructionCount += 1;
     
+    uint32_t stackVar = 0;
+    tlb_read(tlb, cpu->esp, &stackVar, 4);
     
-    
-    if (current->pid == 2) {
+    //if (current->pid == 2) {
         //char *filenameStr = malloc(sizeof(char) * 400); // 400 just be safe if long path
         FILE *fp;
         
         sprintf(filenameStr, "/Users/bbarrows/Library/Developer/CoreSimulator/Devices/2A30AFCA-B0ED-4C44-8494-7BBB1BFF54A4/data/Containers/Shared/AppGroup/56A9034F-7FFE-41B5-8861-7C9F692D8D5F/ishtrace-%d.json", current->pid);
         
         fp = fopen(filenameStr, "a+");
-        
-        fprintf(fp, "{\"pid\": \"%d\", \"eax\": \"%x\", \"ebx\": \"%x\", \"ecx\": \"%x\", \"edx\": \"%x\", \"esi\": \"%x\", \"edi\": \"%x\", \"ebp\": \"%x\", \"esp\": \"%x\", \"eip\": \"%x\", \"eflags\": \"%x\", \"res\": \"%x\", \"insn\": \"%x\", \"num\": \"%d\"}\n", current->pid,  cpu->eax, cpu->ebx, cpu->ecx, cpu->edx, cpu->esi, cpu->edi, cpu->ebp, cpu->esp, cpu->eip, cpu->eflags, cpu->res, insn, cpu->instructionCount);
+    
+    //  [parsedData[@"cf_bit"] UTF8String], [parsedData[@"pf"] UTF8String], [parsedData[@"af"] UTF8String], [parsedData[@"zf"] UTF8String], [parsedData[@"sf"] UTF8String], [parsedData[@"tf"] UTF8String], [parsedData[@"if_"] UTF8String], [parsedData[@"df"] UTF8String], [parsedData[@"of_bit"] UTF8String], [parsedData[@"iopl"] UTF8String], [parsedData[@"pf_res"] UTF8String], [parsedData[@"sf_res"] UTF8String], [parsedData[@"af_ops"] UTF8String]
+    
+        fprintf(fp, "{\"pid\": \"%d\", \"eax\": \"%x\", \"ebx\": \"%x\", \"ecx\": \"%x\", \"edx\": \"%x\", \"esi\": \"%x\", \"edi\": \"%x\", \"ebp\": \"%x\", \"esp\": \"%x\", \"eip\": \"%x\", \"eflags\": \"%x\", \"res\": \"%x\", \"stack\": \"%x\", \"insn\": \"%x\", \"num\": \"%d\", \"cf_bit\": \"%d\", \"pf\": \"%d\", \"af\": \"%d\", \"zf\": \"%d\", \"sf\": \"%d\", \"tf\": \"%d\", \"if_\": \"%d\", \"df\": \"%d\", \"of_bit\": \"%d\", \"iopl\": \"%d\", \"pf_res\": \"%d\", \"sf_res\": \"%d\", \"af_ops\": \"%d\", \"cf\": \"%d\"}\n", current->pid,  cpu->eax, cpu->ebx, cpu->ecx, cpu->edx, cpu->esi, cpu->edi, cpu->ebp, cpu->esp, cpu->eip, cpu->eflags, cpu->res, stackVar, insn, cpu->instructionCount, cpu->cf_bit, cpu->pf, cpu->af, cpu->zf, cpu->sf, cpu->tf, cpu->if_, cpu->df, cpu->of_bit, cpu->iopl, cpu->pf_res, cpu->sf_res, cpu->af_ops, cpu->cf);
         fclose(fp);
         //free(filenameStr);
         
-    }
+    //}
     
-    printk("\nP:%d eax: %x ebx: %x ecx: %x edx: %x esi: %x edi: %x ebp: %x esp: %x eip: %x eflags: %x res: %x insn: %x #:%d\n", current->pid,  cpu->eax, cpu->ebx, cpu->ecx, cpu->edx, cpu->esi, cpu->edi, cpu->ebp, cpu->esp, cpu->eip, cpu->eflags, cpu->res, insn, cpu->instructionCount);
-    printk("\nP:%d cf_bit %d pf %d af %d zf %d sf %d tf %d if_ %d df %d of_bit %d iopl %d pf_res %d sf_res %d af_ops %d\n", current->pid, cpu->cf_bit, cpu->pf, cpu->af, cpu->zf, cpu->sf, cpu->tf, cpu->if_, cpu->df, cpu->of_bit, cpu->iopl, cpu->pf_res, cpu->sf_res, cpu->af_ops);
+    printk("\nP:%d eax: %x ebx: %x ecx: %x edx: %x esi: %x edi: %x ebp: %x esp: %x eip: %x eflags: %x res: %x stack: %x cf_bit %d pf %d af %d zf %d sf %d tf %d if_ %d df %d of_bit %d iopl %d pf_res %d sf_res %d af_ops %d cf %d insn: %x #:%d\n", current->pid,  cpu->eax, cpu->ebx, cpu->ecx, cpu->edx, cpu->esi, cpu->edi, cpu->ebp, cpu->esp, cpu->eip, cpu->eflags, cpu->res, stackVar, cpu->cf_bit, cpu->pf, cpu->af, cpu->zf, cpu->sf, cpu->tf, cpu->if_, cpu->df, cpu->of_bit, cpu->iopl, cpu->pf_res, cpu->sf_res, cpu->af_ops, cpu->cf, insn, cpu->instructionCount);
+     
+     
+    
+    // printk("\nP:%d eax: %x ebx: %x ecx: %x edx: %x esi: %x edi: %x ebp: %x esp: %x eip: %x eflags: %x res: %x cf_bit %d pf %d af %d zf %d sf %d tf %d if_ %d df %d of_bit %d iopl %d pf_res %d sf_res %d af_ops %d insn: %x #:%d\n", current->pid,  cpu->eax, cpu->ebx, cpu->ecx, cpu->edx, cpu->esi, cpu->edi, cpu->ebp, cpu->esp, cpu->eip, cpu->eflags, cpu->res, insn, cpu->instructionCount);
+    // printk("\nP:%d cf_bit %d pf %d af %d zf %d sf %d tf %d if_ %d df %d of_bit %d iopl %d pf_res %d sf_res %d af_ops %d\n", current->pid, cpu->cf_bit, cpu->pf, cpu->af, cpu->zf, cpu->sf, cpu->tf, cpu->if_, cpu->df, cpu->of_bit, cpu->iopl, cpu->pf_res, cpu->sf_res, cpu->af_ops);
     
     //# ifdef BDEBUG
     // printk("P:%d EIP: %x Op: %x\n", current->pid, cpu->eip, insn);
     // printk("\nEIP is: %x\nx", cpu->eip);
     // # end if
+    
+    unlock(&bradsdebuglock);
+    
     
     
 
@@ -1262,7 +1277,8 @@ restart:
                 return 13;
             };
             cpu->cf = (((modrm.type != modrm_reg) ? ({ uint32_t val; if (!tlb_read(tlb, addr + (*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id)) / 32 * (32/8), &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr + (*(uint32_t *) (((char *) cpu) + (modrm_regptr).reg32_id)) / 32 * (32/8); return 13; } val; }) : (modrm.type == modrm_reg ? (*(uint32_t *)(((char *)cpu) + (modrm_base).reg32_id)) : ({ uint32_t val; if (!tlb_read(tlb, addr, &val, 32/8)) { cpu->eip = saved_ip; cpu->segfault_addr = addr; return 13; } val; }))) & (1 << ((*(uint32_t *)(((char *)cpu) + (modrm_regptr).reg32_id)) % 32))) ? 1 : 0;
-            ;
+                
+
             break;
 
         case 0xa4:
@@ -15165,6 +15181,13 @@ static _Bool modrm_compute(struct cpu_state *cpu, struct tlb *tlb, addr_t *addr_
 //__attribute__((flatten)) __attribute__((no_sanitize("address", "thread", "undefined", "leak", "memory")))
 void cpu_run(struct cpu_state *cpu)
 {
+    // Empty out the trace first
+    FILE *fp;
+    sprintf(filenameStr, "/Users/bbarrows/Library/Developer/CoreSimulator/Devices/2A30AFCA-B0ED-4C44-8494-7BBB1BFF54A4/data/Containers/Shared/AppGroup/56A9034F-7FFE-41B5-8861-7C9F692D8D5F/ishtrace-%d.json", current->pid);
+    fp = fopen(filenameStr, "w");
+    fclose(fp);
+    
+    
     int i = 0;
     struct tlb tlb = {.mem = cpu->mem};
     tlb_flush(&tlb);

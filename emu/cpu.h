@@ -5,6 +5,10 @@
 #include "misc.h"
 #include "emu/float80.h"
 #include "emu/memory.h"
+#include "util/sync.h"
+
+
+
 
 struct cpu_state;
 struct tlb;
