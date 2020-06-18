@@ -127,6 +127,7 @@ if get_option('engine') == 'jit'
 else
     src += [
         'emu/interp.c',
+        'brads.c',
     ]
 endif
 

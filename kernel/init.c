@@ -7,6 +7,8 @@
 #include "fs/tty.h"
 #include "fs/devices.h"
 
+#include "brads.h"
+
 int mount_root(const struct fs_ops *fs, const char *source) {
     char source_realpath[MAX_PATH + 1];
     if (realpath(source, source_realpath) == NULL)
@@ -14,6 +16,16 @@ int mount_root(const struct fs_ops *fs, const char *source) {
     int err = do_mount(fs, source_realpath, "", 0);
     if (err < 0)
         return err;
+    
+    lock(&bradsdebuglock);
+    if (strlen(rootsource) != 0 && strlen(source) > 10) {
+        // get this for saving debug json info later
+        strcpy(rootsource, source);
+        // rip off the /roots/alpine/data string:
+        rootsource[strlen(rootsource)-17]='\0';
+        printf("Current debug json dir: %s\n", rootsource);
+    }
+    unlock(&bradsdebuglock);
     return 0;
 }
 

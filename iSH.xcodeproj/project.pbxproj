@@ -12,6 +12,7 @@
 		9A28E4EA219A8B670073D200 /* AboutAppearanceViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 9A28E4E9219A8B670073D200 /* AboutAppearanceViewController.m */; };
 		B1017E932427D997005B0A32 /* cpu-offsets.h in Sources */ = {isa = PBXBuildFile; fileRef = B1017E922427D997005B0A32 /* cpu-offsets.h */; };
 		B182FAC9248131F4003502AF /* NSDictionary+DictToString.m in Sources */ = {isa = PBXBuildFile; fileRef = B182FAC8248131F3003502AF /* NSDictionary+DictToString.m */; };
+		B1D6CDEB2499BC2C00608C8B /* brads.c in Sources */ = {isa = PBXBuildFile; fileRef = B1D6CDEA2499BC2C00608C8B /* brads.c */; };
 		BB0FC5921F980A6C00803272 /* Terminal.m in Sources */ = {isa = PBXBuildFile; fileRef = BB0FC5911F980A6B00803272 /* Terminal.m */; };
 		BB101B382364CF57000A93BC /* FontPickerViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = BB101B372364CF57000A93BC /* FontPickerViewController.m */; };
 		BB13F7EA200ADCED003D1C4D /* libish.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BB13F7DC200AD81D003D1C4D /* libish.a */; };
@@ -121,6 +122,9 @@
 		B17212612429F61700CCF3EC /* genPreProcessed.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = genPreProcessed.c; path = emu/genPreProcessed.c; sourceTree = SOURCE_ROOT; };
 		B182FAC7248131F3003502AF /* NSDictionary+DictToString.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSDictionary+DictToString.h"; sourceTree = SOURCE_ROOT; };
 		B182FAC8248131F3003502AF /* NSDictionary+DictToString.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSDictionary+DictToString.m"; sourceTree = SOURCE_ROOT; };
+		B1D6CDE92499B6B900608C8B /* brads.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = brads.h; sourceTree = "<group>"; };
+		B1D6CDEA2499BC2C00608C8B /* brads.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = brads.c; sourceTree = "<group>"; };
+		B1D6CDEC2499BC3300608C8B /* brads.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = brads.h; sourceTree = "<group>"; };
 		BB0FC5901F980A6B00803272 /* Terminal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Terminal.h; sourceTree = "<group>"; };
 		BB0FC5911F980A6B00803272 /* Terminal.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Terminal.m; sourceTree = "<group>"; };
 		BB101B362364CF57000A93BC /* FontPickerViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FontPickerViewController.h; sourceTree = "<group>"; };
@@ -378,6 +382,9 @@
 				BB7D93362087C2880008DA78 /* util */,
 				BB7D93822087C2890008DA78 /* main.c */,
 				BB7D933B2087C2880008DA78 /* misc.h */,
+				B1D6CDE92499B6B900608C8B /* brads.h */,
+				B1D6CDEA2499BC2C00608C8B /* brads.c */,
+				B1D6CDEC2499BC3300608C8B /* brads.h */,
 				BB7D93812087C2890008DA78 /* debug.h */,
 				BB7D93352087C2880008DA78 /* xX_main_Xx.h */,
 			);
@@ -953,6 +960,7 @@
 				BB792B581F96D90D00FFB7A4 /* TerminalViewController.m in Sources */,
 				BB78AB2B1FAD22440013E782 /* TerminalView.m in Sources */,
 				B182FAC9248131F4003502AF /* NSDictionary+DictToString.m in Sources */,
+				B1D6CDEB2499BC2C00608C8B /* brads.c in Sources */,
 				BB23F58D231E1D1400585522 /* ScrollbarView.m in Sources */,
 				BBFB557621586F9200DFE6DE /* DismissSegue.m in Sources */,
 				BB455E111FB37F6600AFB48B /* DelayedUITask.m in Sources */,

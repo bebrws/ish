@@ -413,8 +413,11 @@ static int elf_exec(struct fd *fd, const char *file, struct exec_args argv, stru
             return _EFAULT;
         envp_addr += user_strlen(envp_addr) + 1;
         p += sizeof(dword_t);
+    
     }
+    
     p += sizeof(dword_t); // null terminator
+    
 
     // copy auxv
     if (user_put(p, aux))

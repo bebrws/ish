@@ -2,6 +2,7 @@
 #include "kernel/calls.h"
 #include "debug.h"
 #include "memory.h"
+#include "brads.h"
 
 
 static int __user_read_task(struct task *task, addr_t addr, void *buf, size_t count) {
@@ -58,6 +59,31 @@ int user_write_task(struct task *task, addr_t addr, const void *buf, size_t coun
 }
 
 int user_write(addr_t addr, const void *buf, size_t count) {
+
+    // THESE ALL HAPPEN BEFORE THE TASK ACTUALLY STARTS FOR PROGRAM SETUP
+//    // Start debuggin JSON Code
+//    lock(&bradsdebuglock);
+//    FILE *fp;
+//    char filenameStr[1000];
+//    sprintf(filenameStr, "%sishmemwrite-%d.json", rootsource2, current->pid);
+//    
+//    fp = fopen(filenameStr, "a+");
+//
+//    uint32_t val;
+//
+//    if (count == 4) {
+//        val = *(uint32_t *)buf;
+//    } else if (count == 2) {
+//        val = *(uint16_t *)buf;
+//    } else if (count == 1) {
+//        val = *(uint8_t *)buf;
+//    }
+//
+//    fprintf(fp, "{\"pid\": \"%d\", \"addr\": \"%x\", \"size\": \"%d\", \"value\": \"%x\"}\n", current->pid, addr, count, val);
+//    fclose(fp);
+//    unlock(&bradsdebuglock);
+//    // End debuggin JSON Code
+    
     return user_write_task(current, addr, buf, count);
 }
 
