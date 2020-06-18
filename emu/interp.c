@@ -230,7 +230,7 @@ restart:
     
     cpu->instructionCount += 1;
     
-    
+    /*
     lock(&bradsdebuglock);
     
     // printf("Current debug json dir: %s\n", rootsource);
@@ -260,6 +260,7 @@ restart:
     // # end if
     
     unlock(&bradsdebuglock);
+    */
     
 
     

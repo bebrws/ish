@@ -85,7 +85,12 @@ forceinline __no_instrument bool tlb_read(struct tlb *tlb, addr_t addr, void *ou
 
 forceinline __no_instrument void *__tlb_write_ptr(struct tlb *tlb, addr_t addr) {
     struct pt_entry *pte = mem_pt(current->mem, PAGE(addr));
-    const char *dbgStr = pte->data->debugString;
+    
+    char *dbgStr = "";
+    
+    if (pte && pte->data) {
+        dbgStr = pte->data->debugString;
+    }
 //    if (current->cpu.instructionCount > 100) {
 //        printf("DEBUGSTRING: %s\n", dbgStr);
 //    }
