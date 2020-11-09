@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="16097" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="16097.2" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
     <device id="retina4_0" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
@@ -17,7 +17,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="FQi-r8-odu" customClass="TerminalView">
-                                <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
+                                <rect key="frame" x="0.0" y="0.0" width="320" height="623"/>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <connections>
                                     <outlet property="controlKey" destination="W9v-cj-FWz" id="HgQ-u7-5IL"/>
@@ -31,7 +31,7 @@
                             <constraint firstItem="FQi-r8-odu" firstAttribute="trailing" secondItem="IVs-Oh-AhK" secondAttribute="trailing" id="EeQ-tO-BY6"/>
                             <constraint firstItem="FQi-r8-odu" firstAttribute="top" secondItem="IVs-Oh-AhK" secondAttribute="top" id="Fd5-I9-Qjs"/>
                             <constraint firstItem="FQi-r8-odu" firstAttribute="leading" secondItem="IVs-Oh-AhK" secondAttribute="leading" id="VUM-Zu-VAQ"/>
-                            <constraint firstItem="FQi-r8-odu" firstAttribute="bottom" secondItem="8bC-Xf-vdC" secondAttribute="bottom" identifier="bottom constraint" id="fXD-Y3-UQj"/>
+                            <constraint firstItem="FQi-r8-odu" firstAttribute="bottom" secondItem="8bC-Xf-vdC" secondAttribute="bottom" constant="55" identifier="bottom constraint" id="fXD-Y3-UQj"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="IVs-Oh-AhK"/>
                     </view>
